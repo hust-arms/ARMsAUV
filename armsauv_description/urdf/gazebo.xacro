@@ -5,12 +5,13 @@
     <xacro:property name="armsauv_cob" value="0 0 0"/>
 
     <!-- Vehicle's actual volume (Gazebo cannot compute the volume out of the mesh) -->
-    <xacro:property name="armsauv_volume" value="0"/>
+    <xacro:property name="armsauv_volume" value="0.838"/>
 
     <!-- Describing the dimensions of the vehicle's bounding box -->
-    <xacro:property name="armsauv_length" value="0"/>
-    <xacro:property name="armsauv_width"  value="0"/>
-    <xacro:property name="armsauv_height" value="0"/>
+    <xacro:property name="armsauv_length" value="2.712"/>
+    <xacro:property name="armsauv_width"  value="0.935"/>
+    <xacro:property name="armsauv_radius"  value="0.120"/>
+    <xacro:property name="armsauv_height" value="0.484"/>
 
     <xacro:macro name="armsauv_hydro_model" params="namespace">
       <!-- List of hydrodynamic models this robot's links -->
@@ -33,32 +34,28 @@
         <!-- Center of buoyancy -->
         <center_of_buoyancy>${armsauv_cob}</center_of_buoyancy>
 
-        <!--
-        Choose one of the hydrodynamic models below, all are based on
-        Fossen's equation of motion for underwater vehicles
-
-        Reference:
-        [1] Fossen, Thor I. Handbook of marine craft hydrodynamics and motion
-            control. John Wiley & Sons, 2011.
-        -->
-
         <!-- 1) Fossen's equation of motion -->
         <hydrodynamic_model>
           <type>fossen</type>
           <added_mass>
-            0 0 0 0 0 0
-            0 0 0 0 0 0
-            0 0 0 0 0 0
-            0 0 0 0 0 0
-            0 0 0 0 0 0
-            0 0 0 0 0 0
+            1     0     0     0     0     0
+            0     16    0     0     0     0
+            0     0     16    0     0     0
+            0     0     0     0.005 0     0
+            0     0     0     0     1.3   0
+            0     0     0     0     0     1.3
           </added_mass>
           <!--
             The linear damping coefficients can be provided as a diagonal (6 elements)
             or a full matrix (36 coefficients), like the added-mass coefficients above
           -->
           <linear_damping>
-            0 0 0 0 0 0
+            -2.4  0     0     0     0     0
+            0     -23   0     0     0     11.5
+            0     0     -23   0     -11.5 0
+            0     0     0     -0.3  0     0
+            0     0     3.1   0     -9.7  0
+            0     -3.1  0     0     0     -9.7
           </linear_damping>
           <!--
             The linear damping coefficients proportional to the forward speed
@@ -74,36 +71,13 @@
             or a full matrix (36 coefficients), like the added-mass coefficients above
           -->
           <quadratic_damping>
-            0 0 0 0 0 0
+            -2.4   0      0      0       0      0
+            0      -80    0      0       0      0.3
+            0      0      -80    0       -0.3   0
+            0      0      0      -0.0006 0      0
+            0      0      1.5    0       -9.1   0
+            0      -1.5   0      0       0      -9.1
           </quadratic_damping>
-
-          <!--
-            In case you want to model a simple surface vessel, you can use the
-            implementation of linear (small angle) theory for boxed shaped vessels
-            by providing the following parameters. If you omit the area of the
-            water level plane area, it will be calculated from the bounding box
-            parameters. Uncomment the lines below in case you are simulating a
-            surface vessel.
-            For more details on these parameters and the computation of buoyancy
-            for vessels using this theory, check:
-              [1] Lecture Notes  TTK 4190 Guidance and Control of Vehicles (T. I. Fossen)
-                  http://www.fossen.biz/wiley/Ch4.pdf
-              [2] Fossen, Thor I. Handbook of marine craft hydrodynamics and motion
-                  control. John Wiley & Sons, 2011.
-          -->
-          
-          <!--
-          <metacentric_width>0.0</metacentric_width>
-          <metacentric_length>0.0</metacentric_length>
-          <submerged_height>0.0</submerged_height>
-          -->
-        </hydrodynamic_model>
-
-        <!-- 2) This computes the added-mass and damping parameters for a sphere
-        in the fluid with the given radius -->
-        <hydrodynamic_model>
-          <type>sphere</type>
-          <radius>0</radius>
         </hydrodynamic_model>
 
       </link>

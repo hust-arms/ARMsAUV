@@ -60,10 +60,10 @@
         <gain>1</gain>
 
         <!-- Maximum allowed input value for the input signal for thruster unit -->
-        <clampMax>-3000</clampMax>
+        <clampMax>3000</clampMax>
 
         <!-- Minimum allowed value for the input signal for thruster unit -->
-        <clampMin>3000</clampMin>
+        <clampMin>-3000</clampMin>
 
         <!-- Minimum and maximum thrust force output allowed -->
         <thrustMin>-50</thrustMin>

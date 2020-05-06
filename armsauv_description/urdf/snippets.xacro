@@ -112,8 +112,8 @@
 
   <xacro:property name="fin_rho" value="1025"/>
 
-  <xacro:property name="front_fin_area" value="0.0064"/>
-  <xacro:property name="front_fin_lift_coefficient" value="3.0"/>
+  <xacro:property name="front_fin_area" value="0.0127"/>
+  <xacro:property name="front_fin_lift_coefficient" value="22.4905"/>
   <xacro:property name="front_fin_drag_coefficient" value="1.98"/>
 
   <xacro:macro name="front_fin_macro" params="namespace fin_id *origin mesh_filename">
@@ -132,8 +132,8 @@
       </xacro:fin_quadratic_macro>
   </xacro:macro>
 
-  <xacro:property name="aft_fin_area" value="0.0164"/>
-  <xacro:property name="aft_fin_lift_coefficient" value="3.0"/>
+  <xacro:property name="aft_fin_area" value="0.0172"/>
+  <xacro:property name="aft_fin_lift_coefficient" value="19.1395"/>
   <xacro:property name="aft_fin_drag_coefficient" value="1.98"/>
 
   <xacro:macro name="aft_fin_macro" params="namespace fin_id *origin mesh_filename">

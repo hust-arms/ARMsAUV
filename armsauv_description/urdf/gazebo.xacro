@@ -42,8 +42,8 @@
             0    120.645    0       0     0    4.895
             0       0    130.513    0  -16.488   0
             0       0       0    0.386    0      0
-            0       0   -16.488     0   61.8     0
-            0     4.895     0       0     0    67.48
+            0       0   -16.488     0  78.266    0
+            0     4.895     0       0     0    67.489
           </added_mass>
           <!--
             The linear damping coefficients can be provided as a diagonal (6 elements)

@@ -3,6 +3,8 @@
 #include <thread>
 #include <mutex>
 
+#include <math.h>
+
 #include <unistd.h>
 
 #include <ros/ros.h>
@@ -50,35 +52,37 @@ void control_loop();
 
 typedef struct _sensors_data
 {
-    double x;
-    double y;
-    double z;
-    double roll;
-    double pitch;
-    double yaw;
-    double x_speed;
-    double y_speed;
-    double z_speed;
-    double roll_speed;
-    double pitch_speed;
-    double yaw_speed;
+    double x;           //艇体x坐标，单位m
+    double y;           //艇体y坐标，单位m
+    double z;           //艇体z坐标，单位m
+    double roll;        //横滚角，单位rad
+    double pitch;       //纵倾角，单位rad
+    double yaw;         //方向角，单位rad
+    double x_speed;     //艏向速度，单位m/s
+    double y_speed;     //横向速度，单位m/s
+    double z_speed;     //垂向速度，单位m/s
+    double roll_speed;  //横滚角速度，单位rad/s
+    double pitch_speed; //纵倾角速度，单位rad/s
+    double yaw_speed;   //方向角速度，单位rad/s
 } sensors_data;
 
 typedef struct _controler_input
 {
-    double depth;
-    double pitch;
-    double yaw;
+    double depth; //期望深度
+    double pitch; //期望纵倾角
+    double yaw;   //期望航路的方向角
+    double x_d;   //期望航路上某一点的x坐标
+    double y_d;   //期望航路上某一点的y坐标
 } controler_input;
 
 typedef struct _controler_output
 {
-    double rouder;
-    double fwd_fin;
-    double aft_fin;
+    double rouder;  //方向舵
+    double fwd_fin; //艏舵舵角
+    double aft_fin; //艉舵舵角
 } controler_output;
 
-void controler_run(sensors_data *sensors, controler_input *input, controler_output *output);
+void controler_run(sensors_data *sensors, controler_input *input, controler_output *output, double dt);
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm);
 
 const uint32_t ms = 1000;
@@ -246,11 +250,11 @@ void imu_cb(const sensor_msgs::Imu::ConstPtr &msg)
     //          pitchspeed,
     //          yawspeed);
 
-    /* for convenience */
-    ROS_INFO("roll: %f, pitch: %f, yaw: %f.",
-             roll * rad2degree,
-             pitch * rad2degree,
-             yaw * rad2degree);
+    // /* for convenience */
+    // ROS_INFO("roll: %f, pitch: %f, yaw: %f.",
+    //          roll * rad2degree,
+    //          pitch * rad2degree,
+    //          yaw * rad2degree);
 }
 
 void pressure_cb(const sensor_msgs::FluidPressure::ConstPtr &msg)
@@ -259,7 +263,7 @@ void pressure_cb(const sensor_msgs::FluidPressure::ConstPtr &msg)
 
     depth = (double)((msg->fluid_pressure - 101) / 10.1) - 0.25;
 
-    ROS_INFO("depth: %f m", depth);
+    // ROS_INFO("depth: %f m", depth);
 }
 
 void posegt_cb(const nav_msgs::Odometry::ConstPtr &msg)
@@ -270,10 +274,10 @@ void posegt_cb(const nav_msgs::Odometry::ConstPtr &msg)
     y = msg->pose.pose.position.y;
     z = msg->pose.pose.position.z;
 
-    ROS_INFO("x: %f, y: %f, z: %f.",
-             x,
-             y,
-             z);
+    // ROS_INFO("x: %f, y: %f, z: %f.",
+    //          x,
+    //          y,
+    //          z);
 }
 
 void dvl_cb(const uuv_sensor_ros_plugins_msgs::DVL::ConstPtr &msg)
@@ -284,10 +288,10 @@ void dvl_cb(const uuv_sensor_ros_plugins_msgs::DVL::ConstPtr &msg)
     y_speed = msg->velocity.y;
     z_speed = msg->velocity.z;
 
-    ROS_INFO("x_speed: %f, y_speed: %f, z_speed: %f.",
-             x_speed,
-             y_speed,
-             z_speed);
+    // ROS_INFO("x_speed: %f, y_speed: %f, z_speed: %f.",
+    //          x_speed,
+    //          y_speed,
+    //          z_speed);
 }
 
 void depth_cb(const std_msgs::Float64::ConstPtr &msg)
@@ -296,7 +300,7 @@ void depth_cb(const std_msgs::Float64::ConstPtr &msg)
 
     depth_input = msg->data;
 
-    ROS_INFO("depth_input: %f", depth_input);
+    // ROS_INFO("depth_input: %f", depth_input);
 }
 
 void pitch_cb(const std_msgs::Float64::ConstPtr &msg)
@@ -305,7 +309,7 @@ void pitch_cb(const std_msgs::Float64::ConstPtr &msg)
 
     pitch_input = msg->data;
 
-    ROS_INFO("pitch_input: %f", pitch_input);
+    // ROS_INFO("pitch_input: %f", pitch_input);
 }
 
 void yaw_cb(const std_msgs::Float64::ConstPtr &msg)
@@ -314,11 +318,13 @@ void yaw_cb(const std_msgs::Float64::ConstPtr &msg)
 
     yaw_input = msg->data;
 
-    ROS_INFO("yaw_input: %f", yaw_input);
+    // ROS_INFO("yaw_input: %f", yaw_input);
 }
 
 void control_loop()
 {
+    sleep(1);
+
     sensors_data *sensors = new sensors_data;
     controler_input *input = new controler_input;
     controler_output *output = new controler_output;
@@ -329,38 +335,69 @@ void control_loop()
 
     while (control_loop_run)
     {
-        usleep(200 * ms);
-        ROS_INFO("control_loop");
+        usleep(100 * ms);
+        // ROS_INFO("control_loop");
 
         sensors->x = getX();
-        sensors->y = getY();
-        sensors->z = getZ();
+        sensors->y = -getY();
+        sensors->z = -getZ();
         sensors->roll = getRoll();
-        sensors->pitch = getPitch();
-        sensors->yaw = getYaw();
+        sensors->pitch = -getPitch();
+        sensors->yaw = -getYaw();
         sensors->x_speed = getXspeed();
-        sensors->y_speed = getYspeed();
-        sensors->z_speed = getZspeed();
+        sensors->y_speed = -getYspeed();
+        sensors->z_speed = -getZspeed();
         sensors->roll_speed = getRollSpeed();
-        sensors->pitch_speed = getPitchSpeed();
-        sensors->yaw_speed = getYawSpeed();
+        sensors->pitch_speed = -getPitchSpeed();
+        sensors->yaw_speed = -getYawSpeed();
 
-        input->depth = getDepthInput();
-        input->pitch = getPitchInput();
-        input->yaw = getYawInput();
+        input->x_d = 0;
+        input->y_d = 0;
+        input->depth = 10.0;
+        input->pitch = 0.0;
+        input->yaw = 0 * degree2rad;
 
-        controler_run(sensors, input, output);
+        controler_run(sensors, input, output, 0.1);
 
-        applyActuatorInput(output->rouder, output->fwd_fin, output->aft_fin, 0);
+        // std::cout << output->rouder << " " << output->fwd_fin << " " << output->aft_fin << std::endl;
+
+        std::cout << sensors->x << " "
+                  << sensors->y << " "
+                  << sensors->z << " "
+                  << "| "
+                  << sensors->roll * rad2degree << " "
+                  << sensors->pitch * rad2degree << " "
+                  << sensors->yaw * rad2degree << " "
+                  << "| "
+                  << sensors->x_speed << " "
+                  << sensors->y_speed << " "
+                  << sensors->z_speed << " "
+                  << "| "
+                  << sensors->roll_speed * rad2degree << " "
+                  << sensors->pitch_speed * rad2degree << " "
+                  << sensors->yaw_speed * rad2degree << " "
+                //   << std::endl
+                  << std::endl;
+
+        std::cout << output->rouder * rad2degree << " "
+                  << output->fwd_fin * rad2degree << " "
+                  << output->aft_fin * rad2degree << " "
+                //   << std::endl
+                  << std::endl;
+
+        applyActuatorInput(
+            output->rouder,
+            output->fwd_fin,
+            output->aft_fin,
+            // 0 * degree2rad,
+            // 0 * degree2rad,
+            // 0 * degree2rad,
+            400);
     }
 
     delete sensors;
     delete input;
     delete output;
-}
-
-void controler_run(sensors_data *sensors, controler_input *input, controler_output *output)
-{
 }
 
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm)
@@ -377,7 +414,7 @@ void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rp
 
     thrusters_msg.data = rpm;
     // thrusters_msg.data = 200;
-    // thruster0_pub.publish(thrusters_msg);
+    thruster0_pub.publish(thrusters_msg);
 
     // rouder
     fins_msg.data = rouder;
@@ -392,8 +429,211 @@ void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rp
     fin1_pub.publish(fins_msg);
 
     // aft_fin
-    fins_msg.data = aft_fin;
-    fin2_pub.publish(fins_msg);
     fins_msg.data = -aft_fin;
+    fin2_pub.publish(fins_msg);
+    fins_msg.data = aft_fin;
     fin4_pub.publish(fins_msg);
+}
+
+double sat(double input, double thick);
+int sign(double input);
+
+void controler_run(sensors_data *sensors, controler_input *input, controler_output *output, double dt)
+{
+    //艇体本体参数
+    static double m = 84.71, L = 2.712, W = 831, B = 838;                    //质量/长度/重力和浮力,实际模型中B=838
+    static double x_B = 0, y_B = 0, z_B = 0, x_G = 0, y_G = 0, z_G = 0.0086; //浮心和重心坐标
+    static double I_xx = 0.82, I_yy = 30.14, I_zz = 30.14;                   //惯性矩
+
+    //水动力参数
+    static double X_dotu = -1.432, Y_dotv = -120.645, Y_dotr = -4.895, Z_dotw = -130.513, Z_dotq = 16.488;
+    static double K_dotp = -0.386, M_dotw = 16.488, M_dotq = -78.266, N_dotv = -4.895, N_dotr = -67.489;
+    static double X_uu = -3.9, Y_vv = -373.287, Y_rr = -4.204, Z_ww = -489.07, Z_qq = 23.016;
+    static double K_pp = -0.1177, M_ww = 23.342, M_qq = -353.406, N_vv = 0.4193, N_rr = -227.024;
+    static double Y_uv = -130.64, Y_ur = 40.25, Z_uw = -522.87, Z_uq = 4.27;
+    static double M_uw = 140.68, M_uq = 73, N_uv = -57.47, N_ur = -50.3;
+
+    //控制力参数
+    static double Y_uudr = 38.279, Z_uuds = -38.279, Z_uudb = -44.981;
+    static double M_uuds = 41.686, M_uudb = -44.531, N_uudr = -41.686;
+
+    //控制参数
+    static double c_z = 0.1, k_z = 0.2, alpha_z = 0.8;              //深度通道参数
+    static double c_theta = 0.2, k_theta = 0.25, alpha_theta = 0.8; //纵倾通道参数
+    static double c_psi = 0.5, k_psi = 0.6, alpha_psi = 0.6;        //航向通道参数
+    static double boundary_thick = 0.1;                             //边界层厚度
+
+    //艇体位姿和速度变量
+    static double x, y, z, phi, theta, psi, u, v, w, p, q, r;
+
+    //控制任务信息变量
+    static double REFz, REFdot_z, REFdot2_z;             //期望深度及其一阶和二阶导数
+    static double preREFz, preREFdot_z;                  //上一控制周期的期望深度及其一阶导
+    static double REFtheta, REFdot_theta, REFdot2_theta; //期望纵倾及其一阶和二阶导数
+    static double preREFtheta, preREFdot_theta;          //上一控制周期的期望纵倾及其一阶导
+    static double REFpsi, REFdot_psi, REFdot2_psi;       //期望航向及其一阶和二阶导数
+    static double preREFpsi, preREFdot_psi;              //上一控制周期的期望航行及其一阶导
+    static double lateral_dis;                           //航行器距离目标航向的横向偏距
+
+    //艇体位姿和速度信息提取
+    x = sensors->x;
+    y = sensors->y;
+    z = sensors->z;
+    phi = sensors->roll;
+    theta = sensors->pitch;
+    psi = sensors->yaw;
+    u = sensors->x_speed;
+    v = sensors->y_speed;
+    w = sensors->z_speed;
+    p = sensors->roll_speed;
+    q = sensors->pitch_speed;
+    r = sensors->yaw_speed;
+
+    //控制任务信息提取和计算
+    REFz = input->depth;    //深度信息
+    REFdot_z = 0;           //深度一阶导
+    REFdot2_z = 0;          //深度二阶导
+    preREFz = REFz;         //更新上一周期的深度值
+    preREFdot_z = REFdot_z; //更新上一周期深度一阶导
+
+    REFtheta = input->pitch + 0.1 * atan((z - REFz) / (2 * L)); //期望的纵倾加上纵倾制导量
+    REFdot_theta = (REFtheta - preREFtheta) / dt;
+    REFdot2_theta = (REFdot_theta - preREFdot_theta) / dt;
+    preREFtheta = REFtheta;
+    preREFdot_theta = REFdot_theta;
+
+    lateral_dis = (x - input->x_d) * sin(input->yaw) - (y - input->y_d) * cos(input->yaw); //计算横向偏距
+    REFpsi = input->yaw + atan(lateral_dis / 50);
+    //REFpsi = input->yaw;
+    REFdot_psi = (REFpsi - preREFpsi) / dt;
+    REFdot2_psi = (REFdot_psi - preREFdot_psi) / dt;
+    //REFdot_psi = 0;
+    //REFdot2_psi = 0;
+    preREFpsi = REFpsi;
+    preREFdot_psi = REFdot_psi;
+
+    //艇体深度面状态变量
+    static double a_zw, a_zq, a_zs, a_zb, f_z;      //垂向运动方程中的变量替换
+    static double a_tw, a_tq, a_ts, a_tb, f_t;      //纵倾运动方程变量替换
+    static double b_z, b_zb, b_zs, b_t, b_tb, b_ts; //dot_w和dot_q表达式中的量
+    static double g_z, g_zb, g_zs, g_t, g_tb, g_ts; //dot2_z和dot2_theta表达式中的量
+    static double dot_z, dot_theta;                 //深度及纵倾的一阶导
+
+    //垂向运动方程变量替换
+    a_zw = m - Z_dotw;
+    a_zq = -(m * x_G + Z_dotq);
+    a_zs = Z_uuds * u * u;
+    a_zb = Z_uudb * u * u;
+    f_z = m * u * q + m * z_G * q * q - X_dotu * u * q + Z_ww * w * fabs(w) + Z_uw * u * w + Z_qq * q * fabs(q) + Z_uq * u * q + (W - B) * cos(theta);
+    //纵倾运动方程变量替换(变量中的t为theta的缩写)
+    a_tw = -(m * x_G + M_dotw);
+    a_tq = I_yy - M_dotq;
+    a_ts = M_uuds * u * u;
+    a_tb = M_uudb * u * u;
+    f_t = -m * z_G * w * q - m * x_G * u * q - (Z_dotw * w + Z_dotq * q) * u + X_dotu * u * w + M_ww * w * fabs(w) + M_uw * u * w + M_qq * q * fabs(q) + M_uq * u * q - (z_G * W - z_B * B) * sin(theta) - (x_G * W - x_B * B) * cos(theta);
+    //dot_w和dot_q表达式中的量
+    b_z = (a_tq * f_z - a_zq * f_t) / (a_zw * a_tq - a_zq * a_tw);
+    b_zb = (a_tq * a_zb - a_zq * a_tb) / (a_zw * a_tq - a_zq * a_tw);
+    b_zs = (a_tq * a_zs - a_zq * a_ts) / (a_zw * a_tq - a_zq * a_tw);
+    b_t = (a_zw * f_t - a_tw * f_z) / (a_zw * a_tq - a_zq * a_tw);
+    b_tb = (a_zw * a_tb - a_tw * a_zb) / (a_zw * a_tq - a_zq * a_tw);
+    b_ts = (a_zw * a_ts - a_tw * a_zs) / (a_zw * a_tq - a_zq * a_tw);
+    //dot2_z和dot2_theta表达式中的量
+    g_z = b_z * cos(theta) - u * q * cos(theta) - w * q * sin(theta);
+    g_zb = b_zb * cos(theta);
+    g_zs = b_zs * cos(theta);
+    g_t = b_t;
+    g_tb = b_tb;
+    g_ts = b_ts;
+    //深度及纵倾的一阶导
+    dot_z = -u * sin(theta) + w * cos(theta);
+    dot_theta = q;
+
+    //艇体水平面状态变量
+    static double a_yv, a_yr, a_ydr, f_y; //横向运动方程变量替换
+    static double a_pv, a_pr, a_pdr, f_p; //横摇运动方程变量替换
+    static double b_y, b_ydr, b_p, b_pdr; //dot_v和dot_r表达式中的量
+    static double dot_psi;                //航向psi的一阶导
+
+    //横向运动方程变量替换(变量中的d为delta的缩写,p为psi的缩写)
+    a_yv = m - Y_dotv;
+    a_yr = m * x_G - Y_dotr;
+    a_ydr = Y_uudr * u * u;
+    f_y = m * y_G * r * r - m * u * r + X_dotu * u * r + Y_vv * v * fabs(v) + Y_uv * u * v + Y_rr * r * fabs(r) + Y_ur * u * r;
+    //横摇运动方程变量替换
+    a_pv = m * x_G - N_dotv;
+    a_pr = I_zz - N_dotr;
+    a_pdr = N_uudr * u * u;
+    f_p = -m * x_G * u * r - m * y_G * v * r + (Y_dotv * v + Y_dotr * r) * u - X_dotu * u * v + N_vv * v * fabs(v) + N_uv * u * v + N_rr * r * fabs(r) + N_ur * u * r;
+    //dot_v和dot_r表达式中的量
+    b_y = (a_pr * f_y - a_yr * f_p) / (a_yv * a_pr - a_pv * a_yr);
+    b_ydr = (a_pr * a_ydr - a_yr * a_pdr) / (a_yv * a_pr - a_pv * a_yr);
+    b_p = (a_yv * f_p - a_pv * f_y) / (a_yv * a_pr - a_pv * a_yr);
+    b_pdr = (a_yv * a_pdr - a_pv * a_ydr) / (a_yv * a_pr - a_pv * a_yr);
+    //航向psi的一阶导
+    dot_psi = r;
+
+    //滑模控制
+    static double e_z, dot_e_z, S_z;
+    static double e_theta, dot_e_theta, S_theta;
+    static double e_psi, dot_e_psi, S_psi;
+    static double L_z, L_theta, L_psi;
+
+    //深度
+    e_z = z - REFz;
+    dot_e_z = dot_z - REFdot_z;
+    S_z = dot_e_z + c_z * e_z;
+
+    //纵倾
+    e_theta = theta - REFtheta;
+    dot_e_theta = dot_theta - REFdot_theta;
+    S_theta = dot_e_theta + c_theta * e_theta;
+
+    //航向
+    e_psi = psi - REFpsi;
+    std::cout << "e_psi: " << e_psi * 57.3 << std::endl;
+    dot_e_psi = dot_psi - REFdot_psi;
+    S_psi = dot_e_psi + c_psi * e_psi;
+
+    //指令计算公式中的中间量
+    L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);
+    L_theta = REFdot2_theta - g_t - c_theta * dot_e_theta - k_theta * pow(fabs(S_theta), alpha_theta) * sat(S_theta, boundary_thick);
+    L_psi = REFdot2_psi - b_p - c_psi * dot_e_psi - k_psi * pow(fabs(S_psi), alpha_psi) * sat(S_psi, boundary_thick);
+
+    //指令计算
+    static double deltab, deltas, deltar;
+    deltab = (L_z * g_ts - L_theta * g_zs) / (g_zb * g_ts - g_tb * g_zs);
+    deltas = (L_theta * g_zb - L_z * g_tb) / (g_zb * g_ts - g_tb * g_zs);
+    deltar = L_psi / b_pdr;
+
+    if (fabs(deltab) > 30 / 57.3)
+        deltab = (30 / 57.3) * sign(deltab);
+
+    if (fabs(deltas) > 30 / 57.3)
+        deltas = (30 / 57.3) * sign(deltas);
+
+    if (fabs(deltar) > 30 / 57.3)
+        deltar = (30 / 57.3) * sign(deltar);
+
+    output->fwd_fin = deltab;
+    output->aft_fin = deltas;
+    output->rouder = deltar;
+}
+
+double sat(double input, double thick)
+{
+    if (fabs(input) >= thick)
+        return sign(input);
+    else
+        return input / thick;
+}
+
+int sign(double input)
+{
+    if (input > 0)
+        return 1;
+    else if (input < 0)
+        return -1;
+    else
+        return 0;
 }

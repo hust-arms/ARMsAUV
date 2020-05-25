@@ -60,14 +60,14 @@
         <gain>1</gain>
 
         <!-- Maximum allowed input value for the input signal for thruster unit -->
-        <clampMax>3000</clampMax>
+        <clampMax>2300</clampMax>
 
         <!-- Minimum allowed value for the input signal for thruster unit -->
-        <clampMin>-3000</clampMin>
+        <clampMin>-2300</clampMin>
 
         <!-- Minimum and maximum thrust force output allowed -->
-        <thrustMin>-50</thrustMin>
-        <thrustMax>50</thrustMax>
+        <thrustMin>-125</thrustMin>
+        <thrustMax>125</thrustMax>
 
         <!--
         Value from 0 to 1 to set the efficiency of the output thrust force
@@ -88,10 +88,22 @@
           <timeConstant>0.05</timeConstant>
         </dynamics>
 
-        <conversion>
+        <!-- <conversion>
           <type>Basic</type>
           <rotorConstant>0.0002</rotorConstant>
-        </conversion>        
+        </conversion>         -->
+
+        <!-- 3) Linear interpolation
+        If you have access to the thruster's data sheet, for example,
+        you can enter samples of the curve's input and output values
+        and the thruster output will be found through linear interpolation
+        of the given samples.
+        -->
+        <conversion>
+          <type>LinearInterp</type>
+          <inputValues>888 1500 1700 1900 2100 2300</inputValues>
+          <outputValues>0 55 70 88 105 125</outputValues>
+        </conversion>
 
       </plugin>
     </gazebo>

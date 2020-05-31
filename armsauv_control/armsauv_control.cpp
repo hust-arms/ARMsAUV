@@ -36,6 +36,9 @@ ros::Publisher fin3_pub;
 ros::Publisher fin4_pub;
 ros::Publisher fin5_pub;
 
+/* timer cb */
+void timer_cb(const ros::TimerEvent &event);
+
 /* sensors cb */
 void imu_cb(const sensor_msgs::Imu::ConstPtr &msg);
 void pressure_cb(const sensor_msgs::FluidPressure::ConstPtr &msg);
@@ -81,6 +84,10 @@ typedef struct _controler_output
     double fwd_fin; //艏舵舵角
     double aft_fin; //艉舵舵角
 } controler_output;
+
+sensors_data *sensors;
+controler_input *input;
+controler_output *output;
 
 void controler_run(sensors_data *sensors, controler_input *input, controler_output *output, double dt);
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm);
@@ -216,15 +223,25 @@ int main(int argc, char **argv)
     fin4_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/4/input", 1);
     fin5_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/5/input", 1);
 
-    control_loop_run = true;
-    static std::thread run_thread([&] { control_loop(); });
+    // control_loop_run = true;
+    // static std::thread run_thread([&] { control_loop(); });
+
+    sensors = new sensors_data;
+    input = new controler_input;
+    output = new controler_output;
+
+    ros::Timer timer = node->createTimer(ros::Duration(0.1), timer_cb);
 
     ros::spin();
 
-    cout << endl
-         << "exiting..." << endl;
-    control_loop_run = false;
-    run_thread.join();
+    // cout << endl
+    //      << "exiting..." << endl;
+    // control_loop_run = false;
+    // run_thread.join();
+
+    delete sensors;
+    delete input;
+    delete output;
 
     return 0;
 }
@@ -353,9 +370,9 @@ void control_loop()
 
         input->x_d = 0;
         input->y_d = 0;
-        input->depth = 10.0;
+        input->depth = 0.0;
         input->pitch = 0.0;
-        input->yaw = 0 * degree2rad;
+        input->yaw = 10 * degree2rad;
 
         controler_run(sensors, input, output, 0.1);
 
@@ -364,40 +381,105 @@ void control_loop()
         std::cout << sensors->x << " "
                   << sensors->y << " "
                   << sensors->z << " "
-                  << "| "
+                  //   << "| "
                   << sensors->roll * rad2degree << " "
                   << sensors->pitch * rad2degree << " "
                   << sensors->yaw * rad2degree << " "
-                  << "| "
+                  //   << "| "
                   << sensors->x_speed << " "
                   << sensors->y_speed << " "
                   << sensors->z_speed << " "
-                  << "| "
+                  //   << "| "
                   << sensors->roll_speed * rad2degree << " "
                   << sensors->pitch_speed * rad2degree << " "
                   << sensors->yaw_speed * rad2degree << " "
-                //   << std::endl
-                  << std::endl;
-
-        std::cout << output->rouder * rad2degree << " "
+                  //   << "| "
+                  << output->rouder * rad2degree << " "
                   << output->fwd_fin * rad2degree << " "
                   << output->aft_fin * rad2degree << " "
-                //   << std::endl
-                  << std::endl;
+            //   << std::endl
+            //   << std::endl;
+            ;
+
+        // std::cout << output->rouder * rad2degree << " "
+        //           << output->fwd_fin * rad2degree << " "
+        //           << output->aft_fin * rad2degree << " "
+        //         //   << std::endl
+        //           << std::endl;
 
         applyActuatorInput(
             output->rouder,
-            output->fwd_fin,
-            output->aft_fin,
+            // output->fwd_fin,
+            // output->aft_fin,
             // 0 * degree2rad,
-            // 0 * degree2rad,
-            // 0 * degree2rad,
-            400);
+            0 * degree2rad,
+            0 * degree2rad,
+            1000);
     }
 
     delete sensors;
     delete input;
     delete output;
+}
+
+void timer_cb(const ros::TimerEvent &event)
+{
+    if (getX() == 0 || getXspeed() == 0)
+    {
+        return;
+    }
+
+    sensors->x = getX();
+    sensors->y = -getY();
+    sensors->z = -getZ();
+    sensors->roll = getRoll();
+    sensors->pitch = -getPitch();
+    sensors->yaw = -getYaw();
+    sensors->x_speed = getXspeed();
+    sensors->y_speed = -getYspeed();
+    sensors->z_speed = -getZspeed();
+    sensors->roll_speed = getRollSpeed();
+    sensors->pitch_speed = -getPitchSpeed();
+    sensors->yaw_speed = -getYawSpeed();
+
+    input->x_d = 30;
+    input->y_d = 0;
+    input->depth = 10.0;
+    input->pitch = 0.0;
+    input->yaw = 30 * degree2rad;
+
+    std::cout << sensors->x << " "
+              << sensors->y << " "
+              << sensors->z << " "
+              //   << "| "
+              << sensors->roll * rad2degree << " "
+              << sensors->pitch * rad2degree << " "
+              << sensors->yaw * rad2degree << " "
+              //   << "| "
+              << sensors->x_speed << " "
+              << sensors->y_speed << " "
+              << sensors->z_speed << " "
+              //   << "| "
+              << sensors->roll_speed * rad2degree << " "
+              << sensors->pitch_speed * rad2degree << " "
+              << sensors->yaw_speed * rad2degree << " ";
+
+    controler_run(sensors, input, output, 0.1);
+
+    std::cout << output->rouder * rad2degree << " "
+              << output->fwd_fin * rad2degree << " "
+              << output->aft_fin * rad2degree << " "
+              << std::endl;
+
+    applyActuatorInput(
+        output->rouder,
+        // 0,
+        output->fwd_fin,
+        output->aft_fin,
+        // 0 * degree2rad,
+        // 0 * degree2rad,
+        // 0 * degree2rad,
+        1250);
 }
 
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm)
@@ -458,9 +540,9 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     static double M_uuds = 41.686, M_uudb = -44.531, N_uudr = -41.686;
 
     //控制参数
-    static double c_z = 0.1, k_z = 0.2, alpha_z = 0.8;              //深度通道参数
-    static double c_theta = 0.2, k_theta = 0.25, alpha_theta = 0.8; //纵倾通道参数
-    static double c_psi = 0.5, k_psi = 0.6, alpha_psi = 0.6;        //航向通道参数
+    static double c_z = 0.08, k_z = 0.1, alpha_z = 0.6;             //深度通道参数
+    static double c_theta = 0.1, k_theta = 0.1, alpha_theta = 0.6; //纵倾通道参数
+    static double c_psi = 0.8, k_psi = 0.8, alpha_psi = 0.8;       //航向通道参数
     static double boundary_thick = 0.1;                             //边界层厚度
 
     //艇体位姿和速度变量
@@ -496,14 +578,15 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     preREFz = REFz;         //更新上一周期的深度值
     preREFdot_z = REFdot_z; //更新上一周期深度一阶导
 
-    REFtheta = input->pitch + 0.1 * atan((z - REFz) / (2 * L)); //期望的纵倾加上纵倾制导量
+    REFtheta = input->pitch + 0.1 * atan((z - REFz) / (4 * L)); //期望的纵倾加上纵倾制导量
     REFdot_theta = (REFtheta - preREFtheta) / dt;
     REFdot2_theta = (REFdot_theta - preREFdot_theta) / dt;
     preREFtheta = REFtheta;
     preREFdot_theta = REFdot_theta;
 
     lateral_dis = (x - input->x_d) * sin(input->yaw) - (y - input->y_d) * cos(input->yaw); //计算横向偏距
-    REFpsi = input->yaw + atan(lateral_dis / 50);
+    std::cout << lateral_dis << " ";
+    REFpsi = input->yaw + atan(lateral_dis / 10);
     //REFpsi = input->yaw;
     REFdot_psi = (REFpsi - preREFpsi) / dt;
     REFdot2_psi = (REFdot_psi - preREFdot_psi) / dt;
@@ -591,9 +674,15 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
 
     //航向
     e_psi = psi - REFpsi;
-    std::cout << "e_psi: " << e_psi * 57.3 << std::endl;
     dot_e_psi = dot_psi - REFdot_psi;
     S_psi = dot_e_psi + c_psi * e_psi;
+
+    std::cout << REFz << " "
+              << REFtheta * 57.3 << " "
+              << REFpsi * 57.3 << " "
+              << e_z << " "
+              << e_theta * 57.3 << " "
+              << e_psi * 57.3 << " ";
 
     //指令计算公式中的中间量
     L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);

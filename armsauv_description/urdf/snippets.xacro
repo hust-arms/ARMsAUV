@@ -60,14 +60,14 @@
         <gain>1</gain>
 
         <!-- Maximum allowed input value for the input signal for thruster unit -->
-        <clampMax>2300</clampMax>
+        <clampMax>1000</clampMax>
 
         <!-- Minimum allowed value for the input signal for thruster unit -->
-        <clampMin>-2300</clampMin>
+        <clampMin>-1000</clampMin>
 
         <!-- Minimum and maximum thrust force output allowed -->
-        <thrustMin>-125</thrustMin>
-        <thrustMax>125</thrustMax>
+        <thrustMin>-36373000</thrustMin>
+        <thrustMax>36373000</thrustMax>
 
         <!--
         Value from 0 to 1 to set the efficiency of the output thrust force
@@ -88,22 +88,10 @@
           <timeConstant>0.05</timeConstant>
         </dynamics>
 
-        <!-- <conversion>
-          <type>Basic</type>
-          <rotorConstant>0.0002</rotorConstant>
-        </conversion>         -->
-
-        <!-- 3) Linear interpolation
-        If you have access to the thruster's data sheet, for example,
-        you can enter samples of the curve's input and output values
-        and the thruster output will be found through linear interpolation
-        of the given samples.
-        -->
         <conversion>
-          <type>LinearInterp</type>
-          <inputValues>888 1500 1700 1900 2100 2300</inputValues>
-          <outputValues>0 55 70 88 105 125</outputValues>
-        </conversion>
+          <type>Basic</type>
+          <rotorConstant>36.374</rotorConstant>
+        </conversion>        
 
       </plugin>
     </gazebo>
@@ -124,11 +112,11 @@
 
   <xacro:property name="fin_rho" value="1025"/>
 
-  <xacro:property name="front_fin_area" value="0.0127"/>
-  <xacro:property name="front_fin_lift_coefficient" value="20.843"/>
-  <xacro:property name="front_fin_drag_coefficient" value="1.98"/>
+  <xacro:property name="fin_area" value="1"/>
+  <xacro:property name="fin_lift_coefficient" value="373.249"/>
+  <xacro:property name="fin_drag_coefficient" value="1.98"/>
 
-  <xacro:macro name="front_fin_macro" params="namespace fin_id *origin mesh_filename">
+  <xacro:macro name="fin_macro" params="namespace fin_id *origin mesh_filename">
       <xacro:fin_quadratic_macro
         namespace="${namespace}"
         parent_link="${namespace}/base_link"
@@ -137,18 +125,18 @@
         max_joint_limit="${90.0 * d2r}"
         mesh_filename="${mesh_filename}"
         fin_dynamics_time_constant="0.2"
-        lift_constant="${0.5 * fin_rho * front_fin_area * front_fin_lift_coefficient}"
-        drag_constant="${0.5 * fin_rho * front_fin_area * front_fin_drag_coefficient}"
+        lift_constant="${0.5 * fin_rho * fin_area * fin_lift_coefficient}"
+        drag_constant="${0.5 * fin_rho * fin_area * fin_drag_coefficient}"
         current_velocity_topic="current_velocity">
         <xacro:insert_block name="origin"/>
       </xacro:fin_quadratic_macro>
   </xacro:macro>
 
-  <xacro:property name="aft_fin_area" value="0.0172"/>
-  <xacro:property name="aft_fin_lift_coefficient" value="19.1395"/>
-  <xacro:property name="aft_fin_drag_coefficient" value="1.98"/>
+  <xacro:property name="rouder_area" value="1"/>
+  <xacro:property name="rouder_lift_coefficient" value="171.135"/>
+  <xacro:property name="rouder_drag_coefficient" value="1.98"/>
 
-  <xacro:macro name="aft_fin_macro" params="namespace fin_id *origin mesh_filename">
+  <xacro:macro name="rouder_macro" params="namespace fin_id *origin mesh_filename">
       <xacro:fin_quadratic_macro
         namespace="${namespace}"
         parent_link="${namespace}/base_link"
@@ -157,8 +145,8 @@
         max_joint_limit="${90.0 * d2r}"
         mesh_filename="${mesh_filename}"
         fin_dynamics_time_constant="0.2"
-        lift_constant="${0.5 * fin_rho * aft_fin_area * aft_fin_lift_coefficient}"
-        drag_constant="${0.5 * fin_rho * aft_fin_area * aft_fin_drag_coefficient}"
+        lift_constant="${0.5 * fin_rho * rouder_area * rouder_lift_coefficient}"
+        drag_constant="${0.5 * fin_rho * rouder_area * rouder_drag_coefficient}"
         current_velocity_topic="current_velocity">
         <xacro:insert_block name="origin"/>
       </xacro:fin_quadratic_macro>

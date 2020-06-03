@@ -472,14 +472,14 @@ void timer_cb(const ros::TimerEvent &event)
               << std::endl;
 
     applyActuatorInput(
-        output->rouder,
+        // output->rouder,
         // 0,
-        output->fwd_fin,
-        output->aft_fin,
-        // 0 * degree2rad,
-        // 0 * degree2rad,
-        // 0 * degree2rad,
-        1250);
+        // output->fwd_fin,
+        // output->aft_fin,
+        0 * degree2rad,
+        0 * degree2rad,
+        0 * degree2rad,
+        5.5);
 }
 
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm)

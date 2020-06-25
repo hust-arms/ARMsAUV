@@ -2,8 +2,8 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- Center of buoyancy -->
-    <!-- <xacro:property name="armsauv_cob" value="0.086 0 -0.137"/> -->
-    <xacro:property name="armsauv_cob" value="0.086 0 -0.137"/>
+    <xacro:property name="armsauv_cob" value="0 0 0.137"/>
+    <!-- <xacro:property name="armsauv_cob" value="0 0 0"/> -->
 
     <!-- Vehicle's actual volume (Gazebo cannot compute the volume out of the mesh) -->
     <!-- <xacro:property name="armsauv_volume" value="${4605 / 1025}"/> -->
@@ -15,6 +15,8 @@
     <xacro:property name="armsauv_width"  value="2.0801"/>
     <xacro:property name="armsauv_radius"  value="0.35795"/>
     <xacro:property name="armsauv_height" value="1.4318"/>
+
+    <xacro:property name="factor" value="0.65"/>
 
     <xacro:macro name="armsauv_hydro_model" params="namespace">
       <!-- List of hydrodynamic models this robot's links -->
@@ -41,12 +43,12 @@
         <hydrodynamic_model>
           <type>fossen</type>
           <added_mass>
-            1.432   0       0       0     0      0
+            <!-- 1.432   0       0       0     0      0
             0    120.645    0       0     0    4.895
             0       0    130.513    0  -16.488   0
             0       0       0    0.386    0      0
             0       0   -16.488     0  78.266    0
-            0     4.895     0       0     0    67.489
+            0     4.895     0       0     0    67.489 -->
             <!-- 302.286     0         0          0          0           0
             0       12996.067     0          0          0        3778.498
             0           0     7198.801       0       -138.636       0
@@ -60,17 +62,17 @@
             0           0         0          0       40597.109      0
             0           0         0          0         0        42452.977 -->
             <!-- 302.286     0        0          0          0          0
-            0       12996.067    0       1486.934      0        3778.498
-            0           0     7198.801      0      -138.636       0
-            0        1486.934    0      2435.827       0       -85.834
-            0           0    -138.636       0       40597.109     0
-            0        3778.498    0       -85.834       0        42452.977 -->
-            <!-- 30.2285     0         0          0         0           0
-            0       1299.6067     0      -148.6934     0      -377.8498
-            0           0     719.8802       0       13.8636       0
-            0       -148.6934     0       243.5827     0        8.5834
-            0           0     13.8636        0      4059.7109      0
-            0       -377.8498     0        8.5834      0       4245.2977 -->
+            0       12996.067    0      -1486.934      0       -3778.498
+            0           0     7198.801      0       138.636       0
+            0       -1486.934    0       2435.827      0        85.834
+            0           0     138.636       0       40597.109     0
+            0       -3778.498    0        85.834       0        42452.977 -->
+  ${302.285 * factor}         0               0               0               0               0
+            0     ${12996.067 * factor}       0    ${-1486.934 * factor}      0       ${-3778.498 * factor}  
+            0                 0     ${7198.802 * factor}      0       ${138.636 * factor}      0
+            0       ${-1486.934 * factor}     0     ${2435.827 * factor}      0         ${85.834 * factor}
+            0                 0     ${138.636 * factor}       0      ${40597.109 * factor}     0
+            0       ${-3778.498 * factor}     0    ${85.834 * factor}         0       ${42452.977 * factor}
             <!-- 302.285     0         0          0         0           0
             0       12996.067     0          0         0           0
             0           0     7198.802       0         0           0

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>armsauv_sim</name>
+  <version>0.0.0</version>
+  <description>The armsauv_sim package</description>
+
+  <maintainer email="wz9562@todo.todo">wz9562</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+  <build_depend>uwsim</build_depend>
+  <build_depend>armsauv_description</build_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>tf</build_export_depend>
+  <build_export_depend>tf_conversions</build_export_depend>
+  <build_export_depend>uwsim</build_export_depend>
+  <build_export_depend>armsauv_description</build_export_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>tf_conversions</exec_depend>
+  <exec_depend>uwsim</exec_depend>
+  <exec_depend>armsauv_description</exec_depend>
+
+  <export>
+  </export>
+</package>

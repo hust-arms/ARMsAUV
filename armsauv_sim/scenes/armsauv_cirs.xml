@@ -1,0 +1,434 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE UWSimScene SYSTEM "UWSimScene.dtd" >
+
+<UWSimScene>
+<oceanState>
+  <windx>0.04</windx>
+  <windy>0.04</windy>
+  <windSpeed>12</windSpeed>
+  <depth>1000</depth>
+  <reflectionDamping>0.35</reflectionDamping>
+  <waveScale>1e-7</waveScale>
+  <isNotChoppy>0</isNotChoppy>
+  <choppyFactor>2.5</choppyFactor>
+  <crestFoamHeight>2.2</crestFoamHeight>
+  <oceanSurfaceHeight>0</oceanSurfaceHeight>
+  <fog>
+    <density>0.1</density>
+    <color>
+      <r>0.0</r>
+      <g>0.05</g>
+      <b>0.3</b>
+    </color>
+  </fog>
+  <color>
+    <r>0.0</r>
+    <g>0.05</g>
+    <b>0.3</b>
+  </color>
+  <attenuation>
+    <r>0.015</r>
+    <g>0.0075</g>
+    <b>0.005</b>
+  </attenuation>
+</oceanState>
+  
+<simParams>
+  <disableShaders>0</disableShaders>
+  <resw>800</resw>
+  <resh>600</resh>
+  <offsetp>
+    <x>0</x>
+    <y>0</y>
+    <z>0</z>
+  </offsetp>
+  <offsetr>
+    <x>3.14</x>
+    <y>0</y>
+    <z>-1.57</z>
+  </offsetr>
+  <enablePhysics>1</enablePhysics>
+  <showTrajectory>
+    <target>armsauv</target>
+  </showTrajectory>
+</simParams>
+
+<camera>
+  <freeMotion>1</freeMotion>
+  <objectToTrack>armsauv/base_link</objectToTrack>
+  <fov>60</fov>
+  <aspectRatio>1.33</aspectRatio>
+  <near>0.1</near>
+  <far>10000</far>
+  <position>
+    <x>-5</x>
+    <y>-5</y>
+    <z>8</z>
+  </position>
+  <lookAt>
+    <x>0</x>
+    <y>0</y>
+    <z>0</z>
+  </lookAt>
+</camera>
+
+<vehicle>
+  <name>armsauv</name> 
+  <file>/home/ros302/Documents/catkin_armsauv/src/ARMsAUV/armsauv_description/robots/default.urdf</file>
+  <!--file>robots/g500ARM5.urdf</file-->
+  <jointValues>
+    <joint>0</joint> 
+    <joint>0</joint> 
+    <joint>0</joint>
+    <joint>0</joint> 
+    <joint>0</joint> 
+    <joint>0</joint> 
+    <joint>0</joint> 
+    <joint>0</joint> 
+    <joint>0</joint>
+  </jointValues>
+  
+  <position>
+    <x>2</x>
+    <y>0</y>
+    <z>2</z>
+  </position>
+  <orientation>
+    <r>0</r>
+    <p>0</p>
+    <y>0</y>
+  </orientation>
+
+  <!--<rangeSensor>
+    <name>armsauv/sonar</name>
+    <relativeTo> armsauv/sonar_link</relativeTo>
+    <range>100.0</range>
+    <visible>1</visible>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+  </rangeSensor>
+
+  <virtualCamera>
+   <name>bowtech1</name>
+   <relativeTo>armsauv/base_link</relativeTo>
+   <resw>320</resw>
+   <resh>240</resh>
+   <position>
+     <x>-0.2</x>
+     <y>-0.1</y>
+     <z>0</z>
+   </position>
+   <orientation>
+     <r>0</r>
+     <p>3.14</p>
+     <y>1.57</y>
+   </orientation>
+  </virtualCamera>
+
+  <virtualCamera>
+    <name>bowtech2</name>
+    <relativeTo>armsauv/base_link</relativeTo>
+    <resw>320</resw>
+    <resh>240</resh>
+    <position>
+      <x>-0.2</x>
+      <y>0.1</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>3.14</p>
+      <y>1.57</y>
+    </orientation>
+  </virtualCamera>
+
+  <rangeSensor>
+    <name>sonar</name>
+    <relativeTo>armsauv/base_link</relativeTo>
+    <range>10</range>
+    <visible>0</visible>
+    <position>
+      <x>-0.3</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>-1.57</p>
+      <y>0</y>
+    </orientation>
+  </rangeSensor>
+
+  <imu>
+    <name>armsauv/imu</name>
+    <relativeTo>armsauv/imu_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.004</std>
+  </imu>
+
+  <pressureSensor>
+      <name>armsauv/pressureSensor</name>
+    <relativeTo>armsauv/pressure_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.0</std>
+  </pressureSensor>
+
+  <gpsSensor>
+    <name>armsauv/gps</name>
+    <relativeTo>armsauv/gps_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.0</std>
+  </gpsSensor>
+
+  <dvlSensor>
+    <name>armsauv/dvl_sonar0</name>
+    <relativeTo>armsauv/dvl_sonar0_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.005</std>
+  </dvlSensor>
+
+  <dvlSensor>
+    <name>armsauv/dvl_sonar1</name>
+    <relativeTo>armsauv/dvl_sonar1_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.005</std>
+  </dvlSensor>
+
+  <dvlSensor>
+    <name>armsauv/dvl_sonar2</name>
+    <relativeTo>armsauv/dvl_sonar2_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.005</std>
+  </dvlSensor>
+
+  <dvlSensor>
+    <name>armsauv/dvl_sonar3</name>
+    <relativeTo>armsauv/dvl_sonar3_link</relativeTo>
+    <position>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    <std>0.005</std>
+  </dvlSensor>
+
+   <virtualRangeImage>
+      <name>rangeImage</name>
+      <relativeTo>armsauv/base_link</relativeTo>
+      <resw> 320</resw>
+      <resh> 240 </resh>
+      <position>
+        <x>-0.2</x>
+        <y> 0.1 </y>
+        <z> 0 </z>
+      </position>
+      <orientation>
+        <r>0</r>
+        <p>3.14</p>
+        <y>1.57 </y>
+      </orientation>
+      <parameters>
+        <fx>257.986</fx>
+        <fy>257.341</fy>
+        <x0>120</x0>
+        <y0>160</y0>
+        <f>10</f>
+        <n>0.8</n>
+        <k>0</k>
+      </parameters>
+    </virtualRangeImage>
+
+    <multibeamSensor>
+      <name>multibeam</name>
+      <relativeTo>armsauv/base_link</relativeTo>
+      <position>
+        <x>-0.2</x>
+        <y> 0.1 </y>
+        <z> 0 </z>
+      </position>
+      <orientation>
+        <r>3.14</r>
+        <p>0</p>
+        <y>3.14 </y>
+      </orientation>
+      <initAngle>-60</initAngle>
+      <finalAngle>60</finalAngle>
+      <angleIncr>0.1</angleIncr>
+      <range>10</range>
+    </multibeamSensor>
+
+    <simulatedDevices>
+      <echo>
+        <name>armsauv_echo1</name>
+        <info>Echo example 1</info>
+      </echo>
+    </simulatedDevices>
+    <echo>
+      <name>armsauv_echo2</name>
+      <info>Echo example 2</info>
+    </echo>
+
+  <ForceSensor>
+    <name>armsauv/ForceSensor</name>
+    <target>armsauv/base_link</target>
+    <offsetp>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </offsetp>
+    <offsetr>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </offsetr>
+  </ForceSensor>-->
+</vehicle>
+
+
+<object>
+  <name>terrain</name>
+  <file>terrain/CIRS/cirs_trident.osg</file>
+  <!-- <file>/opt/ros/melodic/share/uuv_gazebo_worlds/models/ocean/ocean.sdf</file> -->
+  <position>
+    <x>0</x>
+    <y>0</y>
+    <z>0</z>
+  </position>
+  <orientation>
+    <r>0</r>
+    <p>0</p>
+    <y>0</y>
+  </orientation>
+  <offsetp>
+    <x>-1.5</x>
+    <y>-3.0</y>
+    <z>0</z>
+  </offsetp>
+  <offsetr>
+    <x>3.1415</x>
+    <y>0</y>
+    <z>-1.57</z>
+  </offsetr>
+  <physics>
+    <mass>0</mass>
+    <collisionShapeType>trimesh</collisionShapeType>
+  </physics>
+</object>
+
+<object>
+  <name>blackbox</name>
+  <file>objects/blackbox_uib_trimesh.osg</file>
+  <position>
+    <x>0</x>
+    <y>0</y>
+    <z>4.7</z>
+  </position>
+  <orientation>
+    <r>0</r>
+    <p>3.1415</p>
+    <y>0</y>
+  </orientation>
+  <physics>
+    <mass>15</mass>
+    <inertia>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </inertia>
+    <collisionShapeType>box</collisionShapeType>
+  </physics>
+</object>
+
+<rosInterfaces>
+  <ROSOdomToPAT>
+    <topic>armsauv/data_navigator</topic> 
+    <vehicleName>armsauv</vehicleName>
+  </ROSOdomToPAT>
+  <WorldToROSTF>
+    <rootName>world</rootName>
+    <enableObjects>1</enableObjects>
+    <rate>10</rate>
+  </WorldToROSTF>
+  <!--<ROSTwistToPAT>
+    <topic>armsauv/data_twist</topic>
+    <vehicleName>armsauv</vehicleName>
+  </ROSTwistToPAT>-->
+  <ROSPoseToPAT>
+    <topic>/armsauv/pose_pt</topic>
+    <vehicleName>armsauv</vehicleName>
+  </ROSPoseToPAT>
+  <!--<ForceSensorROS>
+    <name>armsauv/ForceSensor</name>
+    <topic>armsauv/ForceSensorData</topic>
+    <rate>100</rate>
+  </ForceSensorROS>-->
+</rosInterfaces>
+</UWSimScene>

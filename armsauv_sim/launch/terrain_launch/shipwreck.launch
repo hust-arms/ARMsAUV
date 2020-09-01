@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <group>
+    <param name="terrain_description" command="$(find xacro)/xacro --inorder $(find armsauv_sim)/model/shipwreck/shipwreck.sdf"/>
+    <node name="terrain_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-sdf -model terrain -param terrain_description -x 0 -y 0 -z 0 -R 0 -P 0 -Y 0"/>
+  </group>
+</launch>

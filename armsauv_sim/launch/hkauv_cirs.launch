@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- launch vehicle model -->
+  <!-- <include file="$(find armsauv_description)/launch/upload_empty_world.launch">
+    <arg name="x" value="2.0" />
+    <arg name="z" value="-2.0" /> 
+    <arg name="depth" value="2.0" />
+    <arg name="use_ned_frame" value="true"/>
+    <arg name="mode" value="default" />
+  </include>-->
+ 
+  <!-- include file="$(find uuv_descriptions)/launch/upload_rexrov_default.launch" /-->
+ 
+  <!-- load UWSim -->
+  <arg name="scene" default="$(find armsauv_sim)/scenes/hkauv_cirs.xml" />
+  <node name="uwsim" pkg="uwsim" type="uwsim" args="--configfile $(arg scene)" output="screen" respawn="false" />
+</launch>

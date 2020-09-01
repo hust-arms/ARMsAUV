@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<sdf version="1.4">
+<model name="shipwreck">
+  <static>true</static>
+  <link name="shipwreck_link">
+    <visual name="shipwreck">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 0 0 0 0</pose>
+      <geometry>
+	<mesh>
+	  <uri>file:///home/ros302/Documents/catkin_armsauv/src/ARMsAUV/armsauv_sim/model/shipwreck/meshes/terrain.ive</uri>    
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <!--<material>
+        <script>
+          <uri>file:///home/ros302/Documents/catkin_armsauv/src/ARMsAUV/armsauv_sim/model/shipwreck/meshes/terrain.ive</uri>	
+	</script>
+      </material>-->
+    </visual>
+    <collision name="shipwreck">
+      <pose>0 0 0 0 0 0</pose>
+      <geometry>
+        <mesh>
+          <uri>file:///home/ros302/Documents/catkin_armsauv/src/ARMsAUV/armsauv_sim/model/shipwreck/meshes/terrain.ive</uri>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>  
+    </collision>
+  </link>
+</model>
+</sdf>

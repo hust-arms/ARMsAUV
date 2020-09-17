@@ -21,6 +21,8 @@
 
 #include <tf/transform_datatypes.h>
 
+#include <geometry_msgs/Pose.h>
+
 using namespace std;
 
 ros::NodeHandle *node;
@@ -35,6 +37,9 @@ ros::Publisher fin2_pub;
 ros::Publisher fin3_pub;
 ros::Publisher fin4_pub;
 ros::Publisher fin5_pub;
+
+// For UWSim
+ros::Publisher pose_pub;
 
 /* timer cb */
 void timer_cb(const ros::TimerEvent &event);
@@ -223,6 +228,8 @@ int main(int argc, char **argv)
     fin4_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/4/input", 1);
     fin5_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/5/input", 1);
 
+    pose_pub = node->advertise<geometry_msgs::Pose>("/armsauv/pose", 1);
+
     // control_loop_run = true;
     // static std::thread run_thread([&] { control_loop(); });
 
@@ -290,6 +297,25 @@ void posegt_cb(const nav_msgs::Odometry::ConstPtr &msg)
     x = msg->pose.pose.position.x;
     y = msg->pose.pose.position.y;
     z = msg->pose.pose.position.z;
+
+    // Publish pose
+    geometry_msgs::Pose armsauv_pose;
+    armsauv_pose.position.x = msg->pose.pose.position.x;
+    armsauv_pose.position.y = -msg->pose.pose.position.y;
+    armsauv_pose.position.z = -msg->pose.pose.position.z;
+
+    double roll, pitch, yaw;
+
+    tf::Quaternion quat;
+    tf::quaternionMsgToTF(msg->pose.pose.orientation, quat);
+
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw); 
+    pitch = -pitch;
+    yaw = -yaw;
+
+    armsauv_pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+
+    pose_pub.publish(armsauv_pose);
 
     // ROS_INFO("x: %f, y: %f, z: %f.",
     //          x,
@@ -372,7 +398,8 @@ void control_loop()
         input->y_d = 0;
         input->depth = 0.0;
         input->pitch = 0.0;
-        input->yaw = 10 * degree2rad;
+	input->yaw = 0;
+        // input->yaw = 10 * degree2rad;
 
         controler_run(sensors, input, output, 0.1);
 
@@ -414,7 +441,7 @@ void control_loop()
             // 0 * degree2rad,
             0 * degree2rad,
             0 * degree2rad,
-            1000);
+            500);
     }
 
     delete sensors;
@@ -443,10 +470,11 @@ void timer_cb(const ros::TimerEvent &event)
     sensors->yaw_speed = -getYawSpeed();
 
     input->x_d = 30;
-    input->y_d = 0;
+    input->y_d = 50;
     input->depth = 10.0;
     input->pitch = 0.0;
-    input->yaw = 30 * degree2rad;
+    // input->yaw = 30 * degree2rad;
+    input->yaw = 0;
 
     std::cout << sensors->x << " "
               << sensors->y << " "
@@ -675,6 +703,7 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     //航向
     e_psi = psi - REFpsi;
     dot_e_psi = dot_psi - REFdot_psi;
+    // dot_e_psi = r;
     S_psi = dot_e_psi + c_psi * e_psi;
 
     std::cout << REFz << " "
@@ -688,6 +717,10 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);
     L_theta = REFdot2_theta - g_t - c_theta * dot_e_theta - k_theta * pow(fabs(S_theta), alpha_theta) * sat(S_theta, boundary_thick);
     L_psi = REFdot2_psi - b_p - c_psi * dot_e_psi - k_psi * pow(fabs(S_psi), alpha_psi) * sat(S_psi, boundary_thick);
+
+    // S_psi = dot_e_psi + c_psi * e_psi;
+    // L_psi = -r - b_p - k_psi * S_psi;
+
 
     //指令计算
     static double deltab, deltas, deltar;

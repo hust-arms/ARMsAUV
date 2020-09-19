@@ -7,7 +7,7 @@ project(armsauv_control)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy tf std_msgs sensor_msgs uuv_gazebo_ros_plugins_msgs genmsg)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy tf std_msgs sensor_msgs uuv_gazebo_ros_plugins_msgs genmsg armsauv_msgs)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
@@ -64,12 +64,12 @@ find_package(Boost REQUIRED COMPONENTS system)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
 #   sensor_msgs
 #   uuv_gazebo_ros_plugins_msgs
-# )
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,9 +101,9 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+   INCLUDE_DIRS include
 #  LIBRARIES armsrov_bridge
-#  CATKIN_DEPENDS other_catkin_pkg
+   CATKIN_DEPENDS roscpp tf std_msgs sensor_msgs uuv_gazebo_ros_plugins_msgs genmsg armsauv_msgs 
    DEPENDS system_lib
 )
 
@@ -114,7 +114,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -122,6 +122,11 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   ${PROJECT_NAME}/armsauv_control.cpp
 # )
+
+add_library(pid_controller
+    src/clf_los_controller.cpp
+    src/common.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -137,6 +142,10 @@ add_executable(${PROJECT_NAME}_node
 
 add_executable(armsauv_smc_node
   sm_ctrl.cpp
+)
+
+add_executable(armsauv_pidctrl_node
+  src/armsauv_control_pid.cpp
 )
 
 ## Rename C++ executable without prefix
@@ -156,12 +165,21 @@ add_dependencies(armsauv_smc_node
   ${catkin_EXPORTED_TARGETS}
 )
 
-## Specify libraries to link a library or executable target against
+add_dependencies(armsauv_pidctrl_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+## Specify libraries to link a library or executable 
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 
 target_link_libraries(armsauv_smc_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(armsauv_pidctrl_node
+  pid_controller
   ${catkin_LIBRARIES}
 )
 

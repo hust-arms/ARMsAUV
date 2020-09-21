@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   message_generation
   std_msgs
+  armsauv_msgs
 )
 
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -76,6 +77,7 @@ install(PROGRAMS
   scripts/arm_odom_generator.py
   scripts/auv_odom_generator.py
   scripts/docking_observer.py
+  scripts/usbl_generator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

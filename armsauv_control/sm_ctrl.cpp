@@ -94,7 +94,7 @@ sensors_data *sensors;
 controler_input* ctrl_input;
 controler_output* ctrl_output;
 
-const uint32_t ms = 1000;
+const uint32_t ms = 1250;
 
 /* imu info */
 double roll, pitch, yaw;                // rad
@@ -254,9 +254,7 @@ void courseControl(const double ROB[4], const double REF[1], double *deltar)
 /**
  * @brief control 滑模控制，右倾为正，艉倾为正，艏向角0-360
  * @param ROB[12] 输入当前艇体状态，ROB[12] = {x,y,z,phi,theta,psi,u,v,w,p,q,r} 都是国际标准单位
- * @param REF[9] 输入期望状态，REF[9] = {dz,dot_dz,dot2_dz,dtheta,dot_dtheta,dot2_dtheta,dpsi,dot_dpsi,dot2_dpsi} 都是国际标准单位
- * @param *deltar 期望方向舵角，上浮舵为正，单位：弧度
- * @param *deltab 期望艏舵角，上浮舵为正，单位：弧度
+ * @param REF[9] 输入期望状态，REF[9] = {dz,dot_dz,dot2_dz,dtheta,dot_dtheta,dot2_dtheta,dpsi,dot_dpsi,dot2_dpsi} 都是国际标准单位 * @param *deltar 期望方向舵角，上浮舵为正，单位：弧度 * @param *deltab 期望艏舵角，上浮舵为正，单位：弧度
  * @param *deltas 期望艉舵角，右转为正，单位：弧度
  */
 void control(const double ROB[12], const double REF[9], double *deltar, double
@@ -485,6 +483,9 @@ void control(const double ROB[12], const double REF[9], double *deltar, double
 void controler_run(const double ROB[12],  const double REF[3], double* deltab, double* deltas, double* deltar, double dt)
 {
     std::cout << "[armsauv_control]:Start control" << std::endl;
+    std::cout << "[armsauv_control]:Control parameters: " << " c_z:" << c_z << " k_z:" << k_z << " alpha_z:" << alpha_z
+	      << " c_theta:" << c_theta << " k_theta:" << k_theta << " alpha_theta:" << alpha_theta
+	      << " c_psi:" << c_psi << " k_psi:" << k_psi << " alpha_psi:" << alpha_psi << " boundary_thick:" << boundary_thick << std::endl;
 
     //艇体位姿和速度变量
     static double x, y, z, phi, theta, psi, u, v, w, p, q, r;
@@ -519,7 +520,11 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
     q = ROB[10];
     r = ROB[11];
 
-
+    std::cout << "[armsauv_control]:REF:" 
+	      << "REF[0]: " << REF[0]
+	      << " REF[1]: " << REF[1]
+	      << " REF[2]: " << REF[2] << std::endl;
+    
     //控制任务信息提取和计算
     REFz = REF[0];    //深度信息
     REFdot_z = 0;           //深度一阶导
@@ -527,7 +532,9 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
     preREFz = REFz;         //更新上一周期的深度值
     preREFdot_z = REFdot_z; //更新上一周期深度一阶导
 
-    REFtheta = REF[1]; //期望的纵倾加上纵倾制导量
+    // REFtheta = REF[1]; //期望的纵倾加上纵倾制导量
+    REFtheta = static_cast<double>(-1)/3 * atan(-(z- REFz) / (2 * L));
+    std::cout << "[armsauv_control]:ref theta: " << REFtheta << std::endl;
     REFdot_theta = (REFtheta - preREFtheta) / dt;
     REFdot2_theta = (REFdot_theta - preREFdot_theta) / dt;
     preREFtheta = REFtheta;
@@ -538,6 +545,9 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
     REFdot2_psi = (REFdot_psi - preREFdot_psi) / dt;
     preREFpsi = REFpsi;
     preREFdot_psi = REFdot_psi;
+
+    std::cout << "[armsauv_control]:theta relative:" << "ref: " << REFtheta<< " ref dot: " << REFdot_theta<< " ref dot2: " << REFdot2_theta<< std::endl;
+    std::cout << "[armsauv_control]:psi relative:" << "ref: " << REFpsi << " ref dot: " << REFdot_psi << " ref dot2: " << REFdot2_psi << std::endl;
 
     //艇体深度面状态变量
     static double a_zw, a_zq, a_zs, a_zb, f_z;      //垂向运动方程中的变量替换
@@ -632,9 +642,9 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
     L_psi = REFdot2_psi - b_p - c_psi * dot_e_psi - k_psi * pow(fabs(S_psi), alpha_psi) * sat(S_psi, boundary_thick);
     //指令计算
     //printf("L_psi=%f b_p=%f\n",L_psi,b_p);
-    *deltab = -(L_z * g_ts - L_theta * g_zs) / (g_zb * g_ts - g_tb * g_zs);
-    *deltas = -(L_theta * g_zb - L_z * g_tb) / (g_zb * g_ts - g_tb * g_zs);
-    *deltar = -L_psi / b_pdr;
+    *deltab = (L_z * g_ts - L_theta * g_zs) / (g_zb * g_ts - g_tb * g_zs);
+    *deltas = (L_theta * g_zb - L_z * g_tb) / (g_zb * g_ts - g_tb * g_zs);
+    *deltar = L_psi / b_pdr;
 
     // *deltab = -(L_z * g_ts - L_theta * g_zs) / (g_zb * g_ts - g_tb * g_zs);
     // *deltas = -(L_theta * g_zb - L_z * g_tb) / (g_zb * g_ts - g_tb * g_zs);
@@ -776,17 +786,18 @@ void timer_cb(const ros::TimerEvent& event){
 
     std::cout << "[armsauv_control]:Set reference" << std::endl;
     double ref_params[3];
-    ref_params[0] = 0.0; // dz
-    ref_params[1] = 30.0; // dtheta
+    ref_params[0] = 30.0; // dz
+    ref_params[1] = 0.0; // dtheta
     ref_params[2] = 0.0; // dpsi
     std::cout << "[armsauv_control]:ref: "
 	      << ref_params[0] << " " << ref_params[1] << " " << ref_params[2] << std::endl;
 
     std::cout << "[armsauv_control]:Run controller" << std::endl;
-    
 
     double deltar, deltab, deltas;
+    
     // Controller 
+    paramInit(0.1, 0.02, 0.8, 0.1, 0.25, 0.8, 0.1, 0.2, 0.6, 0.1);
     controler_run(auv, ref_params, &deltab, &deltas, &deltar, 0.1);
     std::cout << "[armsauv_control]:Apply the controller output" << std::endl;
 

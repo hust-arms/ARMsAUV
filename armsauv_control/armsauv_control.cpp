@@ -469,14 +469,16 @@ void timer_cb(const ros::TimerEvent &event)
     sensors->pitch_speed = -getPitchSpeed();
     sensors->yaw_speed = -getYawSpeed();
 
-    input->x_d = 30;
-    input->y_d = 50;
+    input->x_d = 0;
+    input->y_d = 0;
     input->depth = 10.0;
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;
     input->yaw = 0;
 
-    std::cout << sensors->x << " "
+    std::cout << "target depth: " << input->depth << std::endl;
+
+    /* std::cout << sensors->x << " "
               << sensors->y << " "
               << sensors->z << " "
               //   << "| "
@@ -491,7 +493,7 @@ void timer_cb(const ros::TimerEvent &event)
               << sensors->roll_speed * rad2degree << " "
               << sensors->pitch_speed * rad2degree << " "
               << sensors->yaw_speed * rad2degree << " ";
-
+    */
     controler_run(sensors, input, output, 0.1);
 
     std::cout << output->rouder * rad2degree << " "

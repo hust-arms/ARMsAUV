@@ -14,6 +14,8 @@ class ArmOdomGenerator:
         self.odom_pub = rospy.Publisher(self.topic, Odometry, queue_size=1)
         
         # Set value
+        self.arm_pose.header.stamp = rospy.Time.now()
+        self.arm_pose.header.frame_id = "/arm/base_link"
         self.arm_pose.pose.pose.position.x = 5.0
         self.arm_pose.pose.pose.position.y = 5.0
         self.arm_pose.pose.pose.position.z = 0.0

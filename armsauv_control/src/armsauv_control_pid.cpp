@@ -5,6 +5,8 @@
 
 #include <math.h>
 
+#include <boost/bind.hpp>
+
 #include <unistd.h>
 
 #include <ros/ros.h>
@@ -20,8 +22,10 @@
 #include <uuv_gazebo_ros_plugins_msgs/FloatStamped.h>
 
 #include <tf/transform_datatypes.h>
+#include <tf/transform_listener.h>
 
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PointStamped.h>
 
 #include <armsauv_control/clf_los_controller.h>
 #include <armsauv_msgs/Usbl.h> 
@@ -29,6 +33,8 @@
 using namespace std;
 
 ros::NodeHandle *node;
+
+tf::TransformListener* tf_tree;
 
 uuv_gazebo_ros_plugins_msgs::FloatStamped thrusters_msg;
 ros::Publisher thruster0_pub;
@@ -45,7 +51,7 @@ ros::Publisher fin5_pub;
 ros::Publisher pose_pub;
 
 /* timer cb */
-void timer_cb(const ros::TimerEvent &event);
+void timer_cb(const ros::TimerEvent& event);
 
 /* sensors cb */
 void imu_cb(const sensor_msgs::Imu::ConstPtr &msg);
@@ -222,6 +228,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "armsauv_maneuverability");
 
     node = new ros::NodeHandle;
+
+    // tf::TransformListener tf_tree(ros::Duration(5));
+    tf_tree = new tf::TransformListener(ros::Duration(5));
+    // tf_tree->waitForTransform("/armsauv/base_link", "world", ros::Time(0), ros::Duration(5));
 
     /* sensors */
     ros::Subscriber sub_imu = node->subscribe("/armsauv/imu", 1, imu_cb);
@@ -513,25 +523,72 @@ void timer_cb(const ros::TimerEvent &event)
     sensors->yaw_speed = -getYawSpeed();
 
     /* USBL information processing */
-    double target_x, target_y;
-    target_x = usbl_input.h_r * cos(PI / 2 - usbl_input.phi); // refer to usv coordination
-    target_y = usbl_input.h_r * sin(PI / 2 - usbl_input.phi);
-    double refer_y = target_y;
-    double k = 0;
-    // double refer_x = (refer_y - target_y) / b + target_x;
-    double refer_x = target_x + 10;
+    double target_x, target_y, target_z;
+    // target_x = usbl_input.h_r * cos(PI / 2 - usbl_input.phi); // refer to usv coordination, relative to y axis
+    // target_y = usbl_input.h_r * sin(PI / 2 - usbl_input.phi);
+    target_x = usbl_input.h_r * cos(usbl_input.phi); // refer to usv coordination, relative to x axis
+    target_y = usbl_input.h_r * sin(usbl_input.phi); 
+    target_z = usbl_input.s_r * sin(usbl_input.psi); 
 
-    CLine line(refer_x, refer_y, target_x, target_y, k, target_y - k * target_x);
+    double refer_y = target_y / 2;
+    double refer_x = target_x / 2;
+    double refer_z = target_z / 2;
+
+    // Create target pose message
+    geometry_msgs::PointStamped target_to_usv;
+    target_to_usv.header.frame_id = "armsauv/base_link";
+    target_to_usv.header.stamp = ros::Time::now();
+    target_to_usv.point.x = target_x;
+    target_to_usv.point.y = target_y;
+    target_to_usv.point.z = target_z;
+
+    std::cout << "[target]" << "x:" << target_x
+	      << " y:" << target_y
+	      << " z:" << target_z << std::endl;
+
+    // Create refer pose message
+    geometry_msgs::PointStamped refer_to_usv;
+    refer_to_usv.header.frame_id = "armsauv/base_link";
+    refer_to_usv.header.stamp = ros::Time::now();
+    refer_to_usv.point.x = refer_x;
+    refer_to_usv.point.y = refer_y;
+    refer_to_usv.point.z = refer_z;
+
+    std::cout << "[refer]" << "x:" << refer_x
+	      << " y:" << refer_y
+	      << " z:" << refer_z << std::endl;
+
+    geometry_msgs::PointStamped target_to_world;
+    geometry_msgs::PointStamped refer_to_world;
+    
+    try{
+	tf_tree->transformPoint("world", ros::Time(0), target_to_usv, "/armsauv/base_link", target_to_world);
+	tf_tree->transformPoint("world", ros::Time(0), refer_to_usv, "/armsauv/base_link", refer_to_world);
+    }
+    catch(tf::TransformException& ex){
+        ROS_ERROR("Received an exception trying to transform target pose in usv base to world frame : %s", ex.what());
+	return ;
+    }
+
+    std::cout << "[target to world]" << "x:" << target_to_world.point.x
+	      << " y:" << target_to_world.point.y
+	      << " z:" << target_to_world.point.z << std::endl;
+   
+    std::cout << "[refer to world]" << "x:" << refer_to_world.point.x
+	      << " y:" << refer_to_world.point.y
+	      << " z:" << refer_to_world.point.z << std::endl;
+   
+    // Get slop of target line in world frame 
+    double k = (target_to_world.point.y - refer_to_world.point.y) / (target_to_world.point.x - refer_to_world.point.x);
+
+    CLine line(refer_to_world.point.x, refer_to_world.point.y, target_to_world.point.x, target_to_world.point.y, k, target_to_world.point.y - k * target_to_world.point.x);
+    
     pid_controller->resetLineInfo(line);
-
-    std::cout << "target x:" << target_x
-	      << " target y:" << target_y
-	      << " refer_x:" << refer_x
-	      << " refer_y:" << refer_y << std::endl;
 
     input->x_d = 0;
     input->y_d = 0;
-    input->depth = - usbl_input.s_r * sin(usbl_input.psi);
+    input->depth = -target_to_world.point.z; // depth relative to world frame
+    // input->depth = -usbl_input.s_r * sin(usbl_input.psi);
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;
     input->yaw = 0;

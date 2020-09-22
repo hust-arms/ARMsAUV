@@ -244,7 +244,7 @@ int main(int argc, char **argv)
     ros::Subscriber sub_pitch = node->subscribe("/armsauv/control_input/pitch", 1, pitch_cb);
     ros::Subscriber sub_yaw = node->subscribe("/armsauv/control_input/yaw", 1, yaw_cb);
 
-    ros::Subscriber sub_usbl = node->subscribe("/usbl_output", 1, usbl_cb);
+    ros::Subscriber sub_usbl = node->subscribe("/usbl/output", 1, usbl_cb);
 
     thruster0_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/thrusters/0/input", 1);
 
@@ -587,7 +587,7 @@ void timer_cb(const ros::TimerEvent &event)
 
     input->x_d = 0;
     input->y_d = 0;
-    input->depth = -target_to_world.point.z; // depth relative to world frame
+    input->depth = -target_to_world.point.z - 5.0; // depth relative to world frame
     // input->depth = -usbl_input.s_r * sin(usbl_input.psi);
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;

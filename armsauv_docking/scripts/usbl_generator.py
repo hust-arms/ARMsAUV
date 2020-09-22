@@ -10,7 +10,7 @@ class USBLMsgGenerator:
 
         self.usbl_msg = Usbl()
         self.usbl_msg.header.stamp = rospy.Time.now()
-        self.usbl_msg.phi = 1.658062789 # 95 degree
+        self.usbl_msg.phi = 1.658062789 # -95 degree
         self.usbl_msg.psi = -0.1001674 # -10 degree
         self.usbl_msg.s_r = 200.0
         self.usbl_msg.h_r = 198.9974874 # 

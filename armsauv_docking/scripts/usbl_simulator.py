@@ -3,6 +3,7 @@
 import math
 import rospy
 import sys
+import tf
 from tf import TransformListener
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
@@ -49,18 +50,28 @@ class USBLSimulator:
 
         input_to_global = PoseStamped()
         input_to_global.header.frame_id = self.input_.header.frame_id
-        print(self.input_.header.frame_id)
+        # print(self.input_.header.frame_id)
         input_to_global.header.stamp = self.input_.header.stamp
-        input_to_global.pose.orientation = self.input_.pose.pose.position
-        input_to_global.pose.position = self.input_.pose.pose.orientation
+        input_to_global.pose.position = self.input_.pose.pose.position
+        input_to_global.pose.orientation= self.input_.pose.pose.orientation
 
+        self.tf_tree_.waitForTransform(self.transc_frame_, input_to_global.header.frame_id, rospy.Time.now(), rospy.Duration(0.5))
+        while not rospy.is_shutdown():
+            try:
+                self.tf_tree_.waitForTransform(self.transc_frame_, input_to_global.header.frame_id, rospy.Time.now(), rospy.Duration(0.5))
+                input_to_transc = self.tf_tree_.transformPose(self.transc_frame_, input_to_global)
+            except rospy.ROSInterruptException: pass
+        
+        '''
         try:
             input_to_transc = self.tf_tree_.transformPose(self.transc_frame_, input_to_global)
         except rospy.ROSInterruptException: 
             pass
-
-        euler_angle = tf.transformations.euler_from_quaternion(input_to_transc.pose.orientation)
-
+        '''
+        input_to_transc_o = input_to_transc.pose.orientation
+        input_to_transc_l = [input_to_transc_o.x, input_to_transc_o.y, input_to_transc_o.z, input_to_transc_o.w]
+        euler_angle = tf.transformations.euler_from_quaternion(input_to_transc_l)
+        
         x = input_to_transc.pose.position.x
         y = input_to_transc.pose.position.y
         z = input_to_transc.pose.position.z
@@ -76,6 +87,9 @@ class USBLSimulator:
 
         # get lateral angle difference
         psi = atan(z / h_dist)
+
+        # print
+        print("USBL: ", phi, psi, h_dist, dist)
 
         return [phi, psi, h_dist, dist]
 

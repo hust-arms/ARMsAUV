@@ -1,15 +1,18 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(armsauv_docking)
 
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   armsauv_control
   armsauv_description
   roscpp
   rospy
+  tf
   message_generation
   std_msgs
+  nav_msgs
+  geometry_msgs
   armsauv_msgs
 )
 
@@ -53,31 +56,42 @@ catkin_package(
 )
 
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/armsauv_docking.cpp
-# )
+add_library(common
+  src/common.cpp
+)
 
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(usbl_simulator
+  src/usbl_simulator.cpp
+)
 
-# add_executable(${PROJECT_NAME}_node src/armsauv_docking_node.cpp)
+add_dependencies(usbl_simulator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
-
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(common ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+
+add_executable(usbl_simulator_node src/usbl_simulator_node.cpp)
+
+add_dependencies(usbl_simulator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(usbl_simulator_node 
+  usbl_simulator
+  common
+  ${catkin_LIBRARIES}
+)
 
 install(PROGRAMS
   scripts/arm_odom_generator.py
   scripts/auv_odom_generator.py
   scripts/docking_observer.py
   scripts/usbl_generator.py
+  scripts/usbl_simulator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

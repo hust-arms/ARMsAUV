@@ -270,7 +270,7 @@ int main(int argc, char **argv)
     pid_controller = new CLFLosController(pid_param, line_info);
 
     /* Create Timer */
-    ros::Timer timer = node->createTimer(ros::Duration(0.1), timer_cb);
+    ros::Timer timer = node->createTimer(ros::Duration(0.05), timer_cb);
 
     ros::spin();
 
@@ -458,25 +458,25 @@ void control_loop()
 
         // std::cout << output->rouder << " " << output->fwd_fin << " " << output->aft_fin << std::endl;
 
-        std::cout << sensors->x << " "
-                  << sensors->y << " "
-                  << sensors->z << " "
+        std::cout << "[pose]:" << "x:" << sensors->x << " y:"
+                  << sensors->y << " z:"
+                  << sensors->z << " r:"
                   //   << "| "
-                  << sensors->roll * rad2degree << " "
-                  << sensors->pitch * rad2degree << " "
-                  << sensors->yaw * rad2degree << " "
+                  << sensors->roll * rad2degree << " p:"
+                  << sensors->pitch * rad2degree << " y:"
+                  << sensors->yaw * rad2degree << " xvel:"
                   //   << "| "
-                  << sensors->x_speed << " "
-                  << sensors->y_speed << " "
-                  << sensors->z_speed << " "
+                  << sensors->x_speed << " yvel:"
+                  << sensors->y_speed << " zvel:"
+                  << sensors->z_speed << " rvel:"
                   //   << "| "
-                  << sensors->roll_speed * rad2degree << " "
-                  << sensors->pitch_speed * rad2degree << " "
-                  << sensors->yaw_speed * rad2degree << " "
+                  << sensors->roll_speed * rad2degree << " pvel:"
+                  << sensors->pitch_speed * rad2degree << " yvel:" 
+		  << sensors->yaw_speed * rad2degree << std::endl;
                   //   << "| "
-                  << output->rouder * rad2degree << " "
-                  << output->fwd_fin * rad2degree << " "
-                  << output->aft_fin * rad2degree << " "
+                  // << output->rouder * rad2degree << " "
+                  // << output->fwd_fin * rad2degree << " "
+                  // << output->aft_fin * rad2degree << " "
             //   << std::endl
             //   << std::endl;
             ;
@@ -530,9 +530,11 @@ void timer_cb(const ros::TimerEvent &event)
     target_y = usbl_input.h_r * sin(usbl_input.phi); 
     target_z = usbl_input.s_r * sin(usbl_input.psi); 
 
+    /*
     double refer_y = target_y / 2;
     double refer_x = target_x / 2;
     double refer_z = target_z / 2;
+    */
 
     // Create target pose message
     geometry_msgs::PointStamped target_to_usv;
@@ -547,6 +549,7 @@ void timer_cb(const ros::TimerEvent &event)
 	      << " z:" << target_z << std::endl;
 
     // Create refer pose message
+    /*
     geometry_msgs::PointStamped refer_to_usv;
     refer_to_usv.header.frame_id = "armsauv/base_link";
     refer_to_usv.header.stamp = ros::Time::now();
@@ -557,13 +560,14 @@ void timer_cb(const ros::TimerEvent &event)
     std::cout << "[refer]" << "x:" << refer_x
 	      << " y:" << refer_y
 	      << " z:" << refer_z << std::endl;
+    */
 
     geometry_msgs::PointStamped target_to_world;
     geometry_msgs::PointStamped refer_to_world;
     
     try{
 	tf_tree->transformPoint("world", ros::Time(0), target_to_usv, "/armsauv/base_link", target_to_world);
-	tf_tree->transformPoint("world", ros::Time(0), refer_to_usv, "/armsauv/base_link", refer_to_world);
+	// tf_tree->transformPoint("world", ros::Time(0), refer_to_usv, "/armsauv/base_link", refer_to_world);
     }
     catch(tf::TransformException& ex){
         ROS_ERROR("Received an exception trying to transform target pose in usv base to world frame : %s", ex.what());
@@ -573,6 +577,10 @@ void timer_cb(const ros::TimerEvent &event)
     std::cout << "[target to world]" << "x:" << target_to_world.point.x
 	      << " y:" << target_to_world.point.y
 	      << " z:" << target_to_world.point.z << std::endl;
+
+    refer_to_world.point.x = target_to_world.point.x / 2;
+    refer_to_world.point.y = target_to_world.point.y;
+    refer_to_world.point.z = target_to_world.point.z;
    
     std::cout << "[refer to world]" << "x:" << refer_to_world.point.x
 	      << " y:" << refer_to_world.point.y
@@ -587,7 +595,10 @@ void timer_cb(const ros::TimerEvent &event)
 
     input->x_d = 0;
     input->y_d = 0;
-    input->depth = -target_to_world.point.z - 5.0; // depth relative to world frame
+    input->depth = -target_to_world.point.z; // depth relative to world frame
+    if(input->depth > 20.0){
+        input->depth = 20.0;
+    }
     // input->depth = -usbl_input.s_r * sin(usbl_input.psi);
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;
@@ -619,9 +630,11 @@ void timer_cb(const ros::TimerEvent &event)
     
     if(pid_ctrl_output.second == 1){
       ms = 500;
+      // ms = 0;
     }
     else{
       ms = 1250;
+      // ms = 0;
     }
 
     /* std::cout << output->rouder * rad2degree << " "
@@ -744,7 +757,7 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     preREFdot_theta = REFdot_theta;
 
     lateral_dis = (x - input->x_d) * sin(input->yaw) - (y - input->y_d) * cos(input->yaw); //计算横向偏距
-    std::cout << lateral_dis << " ";
+    // std::cout << lateral_dis << " ";
     REFpsi = input->yaw + atan(lateral_dis / 10);
     //REFpsi = input->yaw;
     REFdot_psi = (REFpsi - preREFpsi) / dt;
@@ -837,12 +850,14 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     // dot_e_psi = r;
     S_psi = dot_e_psi + c_psi * e_psi;
 
+    /*
     std::cout << REFz << " "
               << REFtheta * 57.3 << " "
               << REFpsi * 57.3 << " "
               << e_z << " "
               << e_theta * 57.3 << " "
               << e_psi * 57.3 << " ";
+    */
 
     //指令计算公式中的中间量
     L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);

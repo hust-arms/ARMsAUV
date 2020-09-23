@@ -22,7 +22,7 @@ public:
      * @param LosCtrlParam pid_param PID parameters for LOS controller
      * @param Point Coordinate of target point
      */ 
-    CLFLosController(LosCtrlParam pid_param, const CLine& line, double los_factor = 5.0, double stop_tolerance = 1.0) : 
+    CLFLosController(LosCtrlParam pid_param, const CLine& line, double los_factor = 5.0, double stop_tolerance = 15.0) : 
         BaseLosController(pid_param, stop_tolerance), line_(line), factor_(los_factor){ std::cout << "In CLine Controller: " << factor_ << std::endl; det_phi_ = 0.0; det_pre_ = 0.0, det_last_ = 0.0;}
 
     /**

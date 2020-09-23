@@ -20,6 +20,7 @@
         // det_last_ = det_phi_; 
         
         double dist = distance(x, y, tx, ty);
+	// double x_dist = abs(x - tx);
         
         if(dist <= this->stop_tolerance_){
             return std::make_pair<double, int>(0.0, 1);

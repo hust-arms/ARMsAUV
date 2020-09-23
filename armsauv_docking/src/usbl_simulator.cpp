@@ -43,6 +43,7 @@ namespace armsauv_docking{
 
     void USBLSimulator::transpCb(const nav_msgs::Odometry::ConstPtr& input){
         /* Process input */
+	/*
         geometry_msgs::PoseStamped transp_to_world;
         std::string transp_frame = input->header.frame_id;
         transp_to_world.header.frame_id = transp_frame; 
@@ -54,38 +55,60 @@ namespace armsauv_docking{
         transp_to_world.pose.orientation.y = input->pose.pose.orientation.y;
         transp_to_world.pose.orientation.z = input->pose.pose.orientation.z;
         transp_to_world.pose.orientation.w = input->pose.pose.orientation.w;
-
-        geometry_msgs::PoseStamped transp_to_transc;
+	*/
+        geometry_msgs::PointStamped transp_to_world;
+        std::string transp_frame = input->header.frame_id;
+        transp_to_world.header.frame_id = transp_frame; 
+        transp_to_world.header.stamp = input->header.stamp;
+        transp_to_world.point.x = input->pose.pose.position.x;
+        transp_to_world.point.y = input->pose.pose.position.y;
+        transp_to_world.point.z = input->pose.pose.position.z;
+        
+        // geometry_msgs::PoseStamped transp_to_transc;
+	geometry_msgs::PointStamped transp_to_transc; 
 
         /* Transform transponder pose in world frame to pose in transceiver frame */
         try{
-            tf_.transformPose(transc_frame_, ros::Time(0), transp_to_world, transp_frame, transp_to_transc);
-        }
+            // tf_.transformPose(transc_frame_, ros::Time(0), transp_to_world, transp_frame, transp_to_transc);
+	    tf_.transformPoint(transc_frame_, ros::Time(0), transp_to_world, transp_frame, transp_to_transc); 
+	}
         catch(tf::TransformException& ex){
             ROS_ERROR("Received exception trying ot transform transponder pose to transceiver frame: %s", ex.what());
             return ;
         }
 
         /* Update transceiver message */
-	std::cout << "[usbl_sim]:" << "frame:" << transp_to_transc.header.frame_id << std::endl;
+	std::cout << "[usbl_sim]:" << "local_frame:" << transp_frame << " target_frame:" << transp_to_transc.header.frame_id << std::endl;
 
+        /*
         double d_x = transp_to_transc.pose.position.x;
         double d_y = transp_to_transc.pose.position.y;
         double d_z = transp_to_transc.pose.position.z;
+        */
 
-	std::cout << "[usbl_sim]:" << "delta x:" << d_x
+        double d_x = transp_to_transc.point.x;
+        double d_y = transp_to_transc.point.y;
+        double d_z = transp_to_transc.point.z;
+	
+        std::cout << "[usbl_sim]:" << "delta x:" << d_x
 		                   << " delta y:" << d_y
 				   << " delta z:" << d_z << std::endl;
 
-        tf::Quaternion temp_q(transp_to_transc.pose.orientation.x,
-                              transp_to_transc.pose.orientation.y,
-                              transp_to_transc.pose.orientation.z,
-                              transp_to_transc.pose.orientation.w);
+        /*
+	tf::Quaternion temp_q;
+        tf::quaternionMsgToTF(transp_to_transc.pose.orientation, temp_q);
 
         tf::Matrix3x3 temp_m(temp_q);
+        */
 
         double roll, pitch, yaw;
+        /*
         temp_m.getRPY(roll, pitch, yaw);
+	pitch = -pitch; yaw = -yaw;
+        */
+        roll = atan2(d_z,d_y); 
+        pitch = atan2(d_z,d_x);
+        yaw = atan2(d_y,d_x);
 
 	std::cout << "[usbl_sim]:" << "roll:" << roll
 		                   << " pitch:" << pitch

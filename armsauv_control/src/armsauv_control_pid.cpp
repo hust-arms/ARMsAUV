@@ -265,7 +265,9 @@ int main(int argc, char **argv)
     output = new controler_output;
 
     /* Horizontal plane controller initialization */
-    LosCtrlParam pid_param(10, 0.01, 5.0);
+    LosCtrlParam pid_param(10, 1.8, 0.0); // for yaw = 0.0
+    // LosCtrlParam pid_param(0.8, 0.01, 0);
+    
     CLine line_info(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     pid_controller = new CLFLosController(pid_param, line_info);
 
@@ -622,7 +624,7 @@ void timer_cb(const ros::TimerEvent &event)
               << sensors->yaw_speed * rad2degree << std::endl;
     */
     controler_run(sensors, input, output, 0.1);
-    std::pair<double, int> pid_ctrl_output = pid_controller->computeCtrlQuantity(sensors->x, -sensors->y, target_x, target_y, sensors->yaw);
+    std::pair<double, int> pid_ctrl_output = pid_controller->computeCtrlQuantity(sensors->x, -sensors->y, target_x, target_y, -sensors->yaw);
     
     std::cout << "pid conroller output: "
 	      << "[" << pid_ctrl_output.first << ","

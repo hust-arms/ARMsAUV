@@ -51,7 +51,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES armsauv_docking
-   CATKIN_DEPENDS armsauv_control armsauv_description roscpp rospy std_msgs
+   CATKIN_DEPENDS armsauv_control armsauv_description roscpp rospy std_msgs nav_msgs geometry_msgs armsauv_msgs
 #  DEPENDS system_lib
 )
 
@@ -62,15 +62,23 @@ include_directories(
 
 add_library(common
   src/common.cpp
+  src/file_writer.cpp
 )
 
 add_library(usbl_simulator
   src/usbl_simulator.cpp
 )
 
+add_library(docking_recorder
+  src/docking_recorder.cpp
+)
+
 add_dependencies(usbl_simulator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_dependencies(common ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_dependencies(docking_recorder ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
@@ -78,10 +86,20 @@ add_dependencies(common ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TA
 
 add_executable(usbl_simulator_node src/usbl_simulator_node.cpp)
 
+add_executable(docking_recorder_node src/docking_recorder_node.cpp)
+
 add_dependencies(usbl_simulator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_dependencies(docking_recorder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(usbl_simulator_node 
   usbl_simulator
+  common
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(docking_recorder_node
+  docking_recorder
   common
   ${catkin_LIBRARIES}
 )

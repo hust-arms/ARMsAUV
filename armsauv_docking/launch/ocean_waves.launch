@@ -29,25 +29,25 @@
                     mesh: package://uuv_gazebo_worlds/models/sand_heightmap/meshes/heightmap.dae
                     model: sand_heightmap
                 seafloor:
-                    plane: [20000, 20000, 0.1]
+                    plane: [1, 1, 1]
                     pose:
-                        position: [0, 0, -1000]
+                        position: [0, 0, -0.05]
                 north:
-                    plane: [0.1, 2000, 100]
+                    plane: [1, 1, 0.05]
                     pose:
-                        position: [1000, 0, -50]
+                        position: [0.5, 0, -0.025]
                 south:
-                    plane: [0.1, 2000, 100]
+                    plane: [0.1, 1, 0.05]
                     pose:
-                        position: [-1000, 0, -50]
+                        position: [-0.5, 0, -0.025]
                 west:
-                    plane: [2000, 0.1, 100]
+                    plane: [0.5, 0.1, 0.05]
                     pose:
-                        position: [0, -1000, -50]
+                        position: [0, -0.5, -0.025]
                 east:
-                    plane: [2000, 0.1, 100]
+                    plane: [1, 0.1, 0.05]
                     pose:
-                        position: [0, 1000, -50]
+                        position: [0, 0.5, -0.025]
         </rosparam>
     </node>
 

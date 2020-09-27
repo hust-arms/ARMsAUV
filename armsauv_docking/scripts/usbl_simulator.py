@@ -35,7 +35,7 @@ class USBLSimulator:
         self.period_ = rospy.get_param('period', 0.1)
 
         # get input topic
-        self.input_topic_ = rospy.get_param('input topic', '/qt3/pose_gt')
+        self.input_topic_ = rospy.get_param('input topic', '/qt4/pose_gt')
 
         # get output topic
         self.output_topic_ = rospy.get_param('output topic', '/usbl/output')

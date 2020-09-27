@@ -44,13 +44,16 @@ class DockingObserver:
 
         self.arm_threshold1_ = rospy.get_param("arm_threshold1", 30.0)
 
-        self.arm_threshold2_ = rospy.get_param("arm_threshold2", 0.5)
+        self.arm_threshold2_ = rospy.get_param("arm_threshold2", 5.0)
 
-        self.auv_mission_ = rospy.get_param("auv_mission", "low velocity")
+        self.arm_threshold3_ = rospy.get_param("arm_threshold3", 0.5)
 
-        self.arm_mission1_ = rospy.get_param("arm_mission1", "arm out")
+        self.auv_mission_ = rospy.get_param("auv_mission", "LowVelocity")
 
-        self.arm_mission2_ = rospy.get_param("arm_mission2", "capture")
+        self.arm_mission1_ = rospy.get_param("arm_mission1", "StrenchOut")
+
+        self.arm_mission2_ = rospy.get_param("arm_mission2", "MoveToAUV")
+        self.arm_mission3_ = rospy.get_param("arm_mission3", "GraspAUV")
 
 
     def auvOdomCb(self, odom):
@@ -81,9 +84,12 @@ class DockingObserver:
                 if dist <= arm_threshold1_ and dist > arm_threshold2_:
                     arm_mission_pub_.publish(self.arm_mission1_)
                     print("[docking_demo]:arm should execute mission1")
-                if dist <= arm_threshold2_:
+                if dist <= arm_threshold2_ and dist > arm_threshold3_:
                     arm_mission_pub_.publish(self.arm_mission2_)
                     print("[docking_demo]:arm should execute mission2")
+                if dist <= arm_threshold3_:
+                    arm_mission_pub_.publish(self.arm_mission3_)
+                    print("[docking_demo]:arm should execute mission3")
             else print("[docking_demo]:Waiting for odometry messages")
 
         except rospy.ROSInterruptException: pass

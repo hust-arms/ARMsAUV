@@ -18,10 +18,10 @@ namespace armsauv_docking{
         private_nh.param("auv_odom_t", auv_odom_t, std::string("/armsauv/pose_gt"));
         private_nh.param("usbl_msg_t", usbl_msg_t, std::string("/usbl/output"));
         private_nh.param("auv_ctrl_info_t", auv_ctrl_info_t, std::string("/armsauv/ctrl_info"));
-        private_nh.param("veh_odom_t", veh_odom_t, std::string("/qt3/pose_gt")); 
-        private_nh.param("armc_odom_t", armc_odom_t, std::string("/qt3/pose_gt"));
-        private_nh.param("arm_joints_ang_t", arm_joints_ang_t, std::string("/qt3/joints_angle"));
-        private_nh.param("arm_ctrl_info_t", arm_ctrl_info_t, std::string("/qt3/ctrl_info"));
+        private_nh.param("veh_odom_t", veh_odom_t, std::string("/qt4/pose_gt")); 
+        private_nh.param("armc_odom_t", armc_odom_t, std::string("/qt4/pose_gt"));
+        private_nh.param("arm_joints_ang_t", arm_joints_ang_t, std::string("/qt4/joints_angle"));
+        private_nh.param("arm_ctrl_info_t", arm_ctrl_info_t, std::string("/qt4/ctrl_info"));
 
 	/* Initialize file writer */
 	contentPrint<std::string>("docking_recorder", "Create file writer");

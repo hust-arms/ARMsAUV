@@ -107,7 +107,7 @@ target_link_libraries(docking_recorder_node
 install(PROGRAMS
   scripts/arm_odom_generator.py
   scripts/auv_odom_generator.py
-  scripts/docking_observer.py
+  scripts/docking_demo.py
   scripts/usbl_generator.py
   scripts/usbl_simulator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

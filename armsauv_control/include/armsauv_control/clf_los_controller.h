@@ -37,6 +37,12 @@ public:
     std::pair<double, int> computeCtrlQuantity(double x, double y, double tx, double ty, double yaw)override;
 
     /**
+     * @brief Return Ye
+     * @return Ye
+     */ 
+    double getYe()const{ return ye_; }
+
+    /**
      * @brief Reset parameters of desired line
      * @param line Info of desired line
      */ 
@@ -45,6 +51,7 @@ public:
 private:
     CLine line_;
     double factor_;
+    double ye_;
     double det_phi_;
     double det_sum_;
     // double det_phi_diff_, det_phi_int_;

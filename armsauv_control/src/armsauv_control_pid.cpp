@@ -29,6 +29,7 @@
 
 #include <armsauv_control/clf_los_controller.h>
 #include <armsauv_msgs/Usbl.h> 
+#include <armsauv_msgs/AuvCtrlInfo.h>
 
 using namespace std;
 
@@ -49,6 +50,9 @@ ros::Publisher fin5_pub;
 
 // For UWSim
 ros::Publisher pose_pub;
+
+// Control info
+ros::Publisher ctrl_info_pub;
 
 /* timer cb */
 void timer_cb(const ros::TimerEvent& event);
@@ -221,6 +225,9 @@ double getYawInput()
     return yaw_input;
 }
 
+/* AUV control info */
+armsauv_msgs::AuvCtrlInfo ctrl_info;
+
 CLFLosController* pid_controller; // horizontal controller
 
 int main(int argc, char **argv)
@@ -256,6 +263,8 @@ int main(int argc, char **argv)
     fin5_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/5/input", 1);
 
     pose_pub = node->advertise<geometry_msgs::Pose>("/armsauv/pose", 1);
+
+    ctrl_info_pub = node->advertise<armsauv_msgs::AuvCtrlInfo>("/armsauv/ctrl_info", 1);
 
     // control_loop_run = true;
     // static std::thread run_thread([&] { control_loop(); });
@@ -654,6 +663,16 @@ void timer_cb(const ros::TimerEvent &event)
         // 0 * degree2rad,
         // 0 * degree2rad,
         ms);
+
+    /* publish control information */
+    ctrl_info.ye = pid_controller->getYe();
+    ctrl_info.yawe = 0;
+    ctrl_info.depthe = -target_to_world.point.z + sensors->z; 
+    ctrl_info.dy = target_to_world.point.y;
+    ctrl_info.dyaw = ctrl_info.yawe + sensors->yaw;
+    ctrl_info.ddepth = -target_to_world.point.z;
+
+    ctrl_info_pub.publish(ctrl_info);
 }
 
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm)

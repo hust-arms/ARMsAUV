@@ -43,6 +43,7 @@
         double line_dir = std::atan2(line_.end_y_ - line_.start_y_, line_.end_x_ - line_.start_x_);
  
         double ye = (y - target_y) * std::cos(line_dir);
+	ye_ = ye;
         double ref_phi =  -std::atan2(ye, factor_);
 
         if(line_.is_reverse_)

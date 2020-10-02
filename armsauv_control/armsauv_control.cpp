@@ -471,7 +471,7 @@ void timer_cb(const ros::TimerEvent &event)
 
     input->x_d = 0;
     input->y_d = 0;
-    input->depth = 10.0;
+    input->depth = 20.0;
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;
     input->yaw = 0;

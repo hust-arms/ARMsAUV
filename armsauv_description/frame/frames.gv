@@ -1,0 +1,29 @@
+digraph G {
+"armsauv/base_link" -> "armsauv/base_link_ned"[label="Broadcaster: /gazebo\nAverage rate: 500.000 Hz\nMost recent transform: 22.500 ( 0.000 sec old)\nBuffer length: 4.990 sec\n"];
+"armsauv/base_stabilized" -> "armsauv/base_link"[label="Broadcaster: /armsauv/ground_truth_to_tf_armsauv\nAverage rate: 100.201 Hz\nMost recent transform: 22.466 ( 0.034 sec old)\nBuffer length: 4.980 sec\n"];
+"world" -> "world_ned"[label="Broadcaster: /world_ned_frame_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 22.500 sec old)\nBuffer length: 0.000 sec\n"];
+"armsauv/base_link" -> "armsauv/cc_sensor_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/dvl_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/dvl_link" -> "armsauv/dvl_sonar0_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/dvl_link" -> "armsauv/dvl_sonar1_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/dvl_link" -> "armsauv/dvl_sonar2_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/dvl_link" -> "armsauv/dvl_sonar3_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/fin0"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/fin1"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/fin2"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/fin3"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/fin4"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/fin5"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/gps_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/imu_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/pose_sensor_link_default"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/pressure_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/thruster_0"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"armsauv/base_link" -> "armsauv/sonar_link"[label="Broadcaster: /armsauv/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 22.416 ( 0.084 sec old)\nBuffer length: 4.900 sec\n"];
+"world" -> "armsauv/base_footprint"[label="Broadcaster: /armsauv/ground_truth_to_tf_armsauv\nAverage rate: 100.201 Hz\nMost recent transform: 22.466 ( 0.034 sec old)\nBuffer length: 4.980 sec\n"];
+"armsauv/base_footprint" -> "armsauv/base_stabilized"[label="Broadcaster: /armsauv/ground_truth_to_tf_armsauv\nAverage rate: 100.201 Hz\nMost recent transform: 22.466 ( 0.034 sec old)\nBuffer length: 4.980 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 22.500"[ shape=plaintext ] ;
+ }->"world";
+}

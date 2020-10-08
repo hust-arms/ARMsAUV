@@ -108,13 +108,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/p900.dae" scale="1 1 1"/>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/p900.dae" scale="0.5 0.5 0.5"/>
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/p900.dae" scale="1 1 1"/>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/p900.dae" scale="0.5 0.5 0.5"/>
         </geometry>
       </collision>
     </link>
@@ -186,21 +186,21 @@
 
     <gazebo reference="${namespace}/multibeam_sonar_link">
       <sensor type="gpu_ray" name="multibeam_sonar">
-        <visualize>false</visualize>
-        <update_rate>10.0</update_rate>
+        <visualize>true</visualize>
+        <update_rate>15.0</update_rate>
         <ray>
           <scan>
             <horizontal> 
-              <samples>500</samples>
-              <resolution>0.1</resolution>
-              <min_angle>-0.785398163</min_angle><!--45-->
-              <max_angle>0.785398163</max_angle><!--45-->
+              <samples>512</samples>
+              <resolution>0.01</resolution>
+              <min_angle>-0.785398163</min_angle>
+              <max_angle>0.785398163</max_angle>
             </horizontal>
           </scan>
           <range>
-            <min>1</min>
+            <min>2</min>
             <max>60</max>
-            <resolution>0.01</resolution>
+            <resolution>1</resolution>
           </range>
           <noise>
             <type>gaussian</type>
@@ -209,7 +209,7 @@
           </noise>
         </ray>
         <plugin name="multibeam_sonar_plugin" filename="libgazebo_ros_gpu_laser.so">
-          <topicName>multibeam_sonar_image</topicName>
+          <topicName>multibeam_sonar</topicName>
           <frameName>multibeam_sonar_link</frameName>
         </plugin>
       </sensor>

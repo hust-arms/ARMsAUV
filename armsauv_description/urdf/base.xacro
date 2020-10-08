@@ -35,34 +35,185 @@
   <!-- Vehicle macro -->
   <xacro:macro name="armsauv_base" params="namespace *gazebo inertial_reference_frame">
 
-      <!-- Rigid body description of the base link -->
-      <link name="${namespace}/base_link">
-        <!--
-          Be careful to setup the coefficients for the inertial tensor,
-          otherwise your model will become unstable on Gazebo
-        -->
-        <inertial>
-          <mass value="${mass}" />
-          <origin xyz="${cog}" rpy="0 0 0"/>
-          <inertia ixx="0.82" ixy="0" ixz="0"
-                   iyy="30.14" iyz="0"
-                   izz="30.14" />
-        </inertial>
+    <!-- Rigid body description of the base link -->
+    <link name="${namespace}/base_link">
+      <!--
+        Be careful to setup the coefficients for the inertial tensor,
+        otherwise your model will become unstable on Gazebo
+      -->
+      <inertial>
+        <mass value="${mass}" />
+        <origin xyz="${cog}" rpy="0 0 0"/>
+        <inertia ixx="0.82" ixy="0" ixz="0"
+                 iyy="30.14" iyz="0"
+                 izz="30.14" />
+      </inertial>
 
-        <visual>
-          <origin xyz="-0.5 0 0" rpy="0 0 0"/>
-          <geometry>
-            <mesh filename="${visual_mesh_file}" scale="1 1 1" />
-          </geometry>
-        </visual>
+      <visual>
+        <origin xyz="-0.5 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${visual_mesh_file}" scale="1 1 1" />
+        </geometry>
+      </visual>
 
-        <collision>
-          <origin xyz="-0.5 0 0" rpy="0 0 0"/>s
-          <geometry>
-            <mesh filename="${collision_mesh_file}" scale="1 1 1" />
-          </geometry>
-        </collision>
-      </link>
+      <collision>
+        <origin xyz="-0.5 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${collision_mesh_file}" scale="1 1 1" />
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="${namespace}/camera_link">
+      <mass value="0.3"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.0000450"
+          iyy="0.0001746"
+          izz="0.0001746"
+          ixy="0"
+          ixz="0"
+          iyz="0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 1.57"/>
+        <geometry>
+          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera/mesh/mono_camera.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 1.57"/>
+        <geometry>
+          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera/mesh/mono_camera.dae" scale="1 1 1"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${namespace}/camera_to_base" type="fixed">
+      <parent link ="${namespace}/base_link"/>
+      <child link ="${namespace}/camera_link"/>
+      <origin rpy="0 0 0" xyz="0.85 0 0"/>
+      <axis xyz="1 0 0"/>
+    </joint>
+
+    <link name="${namespace}/multibeam_sonar_link" type="fixed">
+      <mass value="0.02"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.00001"
+          iyy="0.00001"
+          izz="0.00001"
+          ixy="0.0"
+          ixz="0.0"
+          iyz="0.0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/p900.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/p900.dae" scale="1 1 1"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="multibeam_to_base" type="fixed">
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/multibeam_sonar_link" />
+      <origin rpy="0 0 0" xyz="0.75 0 -0.3"/>
+      <axis xyz="1 0 0"/>
+    </joint>
+
+    <gazebo reference="${namespace}/camera_link">
+      <sensor type="camera" name="sensor">
+        <update_rate>10.0</update_rate>
+        <camera name="camera">
+          <horizontal_fov>1.3962634</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>10</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+	<!--<plugin name="camera_plugin" filename="libuuv_gazebo_ros_camera_plugin.so">
+          <updateRate>10.0</updateRate>
+          <cameraName>camera</cameraName>
+	  <frameName>${namespace}/camera_link</frameName>
+
+	  <attenuationR>0.01</attenuationR>
+	  <attenuationG>0.03</attenuationG>
+	  <attenuationB>0.01</attenuationB>
+
+	  <backgroundR>0</backgroundR>
+	  <backgroundG>0</backgroundG>
+	  <backgroundB>0</backgroundB>
+	  
+	  <imageTopicName>image</imageTopicName>
+	  <pointCloudTopicName>cloud_point</pointCloudTopicName>
+	  <depthImageTopicName>depth</depthImageTopicName>
+	  <depthImageCameraInfoTopicName>depth_info</depthImageCameraInfoTopicName>
+	  <pointCloudCutoff>10.0</pointCloudCutoff>
+	</plugin>-->
+	<plugin name="camera_plugin" filename="libgazebo_ros_camera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>10.0</updateRate>
+          <cameraName>camera</cameraName>
+          <frameName>camera_link</frameName>
+
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+
+          <imageTopicName>image</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <gazebo reference="${namespace}/multibeam_sonar_link">
+      <sensor type="gpu_ray" name="multibeam_sonar">
+        <visualize>false</visualize>
+        <update_rate>10.0</update_rate>
+        <ray>
+          <scan>
+            <horizontal> 
+              <samples>500</samples>
+              <resolution>0.1</resolution>
+              <min_angle>-0.785398163</min_angle><!--45-->
+              <max_angle>0.785398163</max_angle><!--45-->
+            </horizontal>
+          </scan>
+          <range>
+            <min>1</min>
+            <max>60</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.001</stddev>
+          </noise>
+        </ray>
+        <plugin name="multibeam_sonar_plugin" filename="libgazebo_ros_gpu_laser.so">
+          <topicName>multibeam_sonar_image</topicName>
+          <frameName>multibeam_sonar_link</frameName>
+        </plugin>
+      </sensor>
+    </gazebo>
 
     <gazebo reference="${namespace}/base_link">
       <selfCollide>false</selfCollide>

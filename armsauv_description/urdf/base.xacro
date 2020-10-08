@@ -95,7 +95,7 @@
       <axis xyz="1 0 0"/>
     </joint>
 
-    <link name="${namespace}/multibeam_sonar_link" type="fixed">
+    <!--<link name="${namespace}/multibeam_sonar_link" type="fixed">
       <mass value="0.02"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
@@ -124,8 +124,39 @@
       <child link="${namespace}/multibeam_sonar_link" />
       <origin rpy="0 0 0" xyz="0.75 0 -0.3"/>
       <axis xyz="1 0 0"/>
-    </joint>
+    </joint>-->
 
+    <link name="${namespace}/forward_looking_sonar_link" type="fixed">
+      <mass value="0.02"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.00001"
+          iyy="0.00001"
+          izz="0.00001"
+          ixy="0.0"
+          ixz="0.0"
+          iyz="0.0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="0.5 0.5 0.5"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="0.5 0.5 0.5"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="forwardlooking_to_base" type="fixed">
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/forward_looking_sonar_link" />
+      <origin rpy="0 0 0" xyz="0.75 0 -0.125"/>
+      <axis xyz="1 0 0"/>
+    </joint>
+    
     <gazebo reference="${namespace}/camera_link">
       <sensor type="camera" name="sensor">
         <update_rate>10.0</update_rate>
@@ -184,7 +215,7 @@
       </sensor>
     </gazebo>
 
-    <gazebo reference="${namespace}/multibeam_sonar_link">
+    <!--<gazebo reference="${namespace}/multibeam_sonar_link">
       <sensor type="gpu_ray" name="multibeam_sonar">
         <visualize>true</visualize>
         <update_rate>15.0</update_rate>
@@ -212,6 +243,30 @@
           <topicName>multibeam_sonar</topicName>
           <frameName>multibeam_sonar_link</frameName>
         </plugin>
+      </sensor>
+    </gazebo>-->
+
+    <gazebo reference="${namespace}/forward_looking_sonar_link">
+      <sensor name="${namespace}/image_sonar" type="depth">
+        <camera>
+          <horizontal_fov>1.57</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <save enable="true">
+              <path>/tmp/camera</path>
+            </save>
+          </clip>
+        </camera>
+        <plugin filename="libimage_sonar_ros_plugin.so" name="forward_looking_sonar">
+          <topicName>forward_looking_sonar</topicName>
+          <frameName>forward_looking_sonar_link"</frameName>
+        </plugin>
+        <alwaysOn>true</alwaysOn>
+        <update_rate>10.0</update_rate>
       </sensor>
     </gazebo>
 

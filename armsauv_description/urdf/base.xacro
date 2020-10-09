@@ -126,7 +126,7 @@
       <axis xyz="1 0 0"/>
     </joint>-->
 
-    <link name="${namespace}/forward_looking_sonar_link" type="fixed">
+    <link name="${namespace}/forward_looking_sonar_link">
       <mass value="0.02"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
@@ -155,8 +155,208 @@
       <child link="${namespace}/forward_looking_sonar_link" />
       <origin rpy="0 0 0" xyz="0.75 0 -0.125"/>
       <axis xyz="1 0 0"/>
+    </joint>     
+
+    <link name="${namespace}/led0_link">
+      <mass value="0.1"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.00001"
+          iyy="0.00001"
+          izz="0.00001"
+          ixy="0.0"
+          ixz="0.0"
+          iyz="0.0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.2 0.04 0.01"/>
+        </geometry>
+        <material name="lblue">
+          <color rgba="0.5294 0.8078 0.9804 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.2 0.04 0.01"/>
+        </geometry>
+      </collision>
+      <!--<light name="led1" type="spot">
+        <attenuation>
+          <range>30.0</range>
+          <linear>0.05</linear>
+        </attenuation>
+        <diffuse>1 0 0 1</diffuse>
+        <specular>1 0 0 1</specular>
+        <spot>
+          <inner_angle>0.3</inner_angle>
+          <outer_angle>0.35</outer_angle>
+          <falloff>1</falloff>
+        </spot>
+        <direction>0 0 -1</direction>
+      </light>-->
+    </link>
+
+    <joint name="led0_to_base" type="fixed">
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/led0_link"/>
+      <origin xyz="-0.5 0.0 -0.12" rqy="0 0 0"/>
+      <axis xyz="0 0 1"/> 
     </joint>
-    
+
+    <gazebo reference="${namespace}/led0_link">
+      <!--<light name="${namespace}/led0_link/led0" type="spot">-->
+      <light name="${namespace}/led0_link/led0" type="directional">
+        <pose>-0.5 0.0 -0.12 0 0 0</pose>
+        <attenuation>
+          <range>5.0</range>
+          <linear>0.05</linear>
+        </attenuation>
+        <diffuse>1 0 0 1</diffuse>
+        <specular>1 0 0 1</specular>
+        <!--<spot>
+          <inner_angle>0.3</inner_angle>
+          <outer_angle>0.35</outer_angle>
+          <falloff>1</falloff>
+        </spot>-->
+        <direction>0 0 -1</direction>
+      </light>
+      <plugin name="led_control" filename="libFlashLightPlugin.so">
+        <enable>true</enable>
+        <light>
+          <id>${namespace}/led0_link/led0</id>
+          <duration>1.0</duration>
+          <interval>0</interval>
+          <color>1 0 0</color>
+        </light>
+      </plugin>
+    </gazebo>
+
+    <link name="${namespace}/led1_link">
+      <mass value="0.1"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.00001"
+          iyy="0.00001"
+          izz="0.00001"
+          ixy="0.0"
+          ixz="0.0"
+          iyz="0.0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.2 0.04 0.01"/>
+        </geometry>
+        <material name="lblue">
+          <color rgba="0.5294 0.8078 0.9804 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.2 0.04 0.01"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="led1_to_base" type="fixed">
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/led1_link"/>
+      <origin xyz="-0.29 0.0 -0.12" rqy="0 0 0"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <gazebo reference="${namespace}/led1_link">
+      <!--<light name="${namespace}/led1_link/led1" type="spot">-->
+      <light name="${namespace}/led1_link/led1" type="directional">
+        <pose>-0.29 0.0 -0.12 0 0 0</pose>
+        <attenuation>
+          <range>5.0</range>
+          <linear>0.05</linear>
+        </attenuation>
+        <diffuse>1 0 0 1</diffuse>
+        <specular>1 0 0 1</specular>
+        <!--<spot>
+          <inner_angle>0.3</inner_angle>
+          <outer_angle>0.35</outer_angle>
+          <falloff>1</falloff>
+        </spot>-->
+        <direction>0 0 -1</direction>
+      </light>
+      <plugin name="led_control" filename="libFlashLightPlugin.so">
+        <enable>true</enable>
+        <light>
+          <id>${namespace}/led1_link/led1</id>
+          <duration>1.0</duration>
+          <interval>0</interval>
+          <color>1 0 0</color>
+        </light>
+      </plugin>
+    </gazebo>
+
+    <link name="${namespace}/led2_link">
+      <mass value="0.1"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.00001"
+          iyy="0.00001"
+          izz="0.00001"
+          ixy="0.0"
+          ixz="0.0"
+          iyz="0.0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.2 0.04 0.01"/>
+        </geometry>
+        <material name="lblue">
+          <color rgba="0.5294 0.8078 0.9804 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.2 0.04 0.01"/>
+          </geometry>
+      </collision>
+    </link>
+
+    <joint name="led2_to_base" type="fixed">
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/led2_link"/>
+      <origin xyz="-0.71 0.0 -0.12" rqy="0 0 0"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <gazebo reference="${namespace}/led2_link">
+      <!--<light name="${namespace}/led2_link/led2" type="spot">-->
+      <light name="${namespace}/led2_link/led2" type="directional">
+        <pose>-0.71 0.0 -0.12 0 0 0</pose>
+        <attenuation>
+          <range>5.0</range>
+          <linear>0.05</linear>
+        </attenuation>
+        <diffuse>1 0 0 1</diffuse>
+        <specular>1 0 0 1</specular>
+        <!--<spot>
+          <inner_angle>0.3</inner_angle>
+          <outer_angle>0.35</outer_angle>
+          <falloff>1</falloff>
+        </spot>-->
+        <direction>0 0 -1</direction>
+      </light>
+      <plugin name="led_control" filename="libFlashLightPlugin.so">
+        <enable>true</enable>
+        <light>
+          <id>${namespace}/led2_link/led2</id>
+          <duration>1.0</duration>
+          <interval>0</interval>
+          <color>1 0 0</color>
+        </light>
+      </plugin>
+    </gazebo>
+
     <gazebo reference="${namespace}/camera_link">
       <sensor type="camera" name="sensor">
         <update_rate>10.0</update_rate>

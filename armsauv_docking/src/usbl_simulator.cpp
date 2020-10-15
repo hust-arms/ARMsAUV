@@ -15,7 +15,7 @@ namespace armsauv_docking{
 
         /* Load parameters */
         private_nh.param("transceiver_frame", transc_frame_, std::string("armsauv/base_link"));
-        private_nh.param("input_topic", input_topic_, std::string("/qt4/pose_gt"));
+        private_nh.param("input_topic", input_topic_, std::string("/uvsm719/pose_gt"));
         private_nh.param("output_topic", output_topic_, std::string("/usbl/output"));
 	// private_nh.param("period", period_, 0.05);
 

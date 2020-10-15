@@ -21,8 +21,6 @@
 
 #include <tf/transform_datatypes.h>
 
-#include <geometry_msgs/Pose.h>
-
 using namespace std;
 
 ros::NodeHandle *node;
@@ -37,9 +35,6 @@ ros::Publisher fin2_pub;
 ros::Publisher fin3_pub;
 ros::Publisher fin4_pub;
 ros::Publisher fin5_pub;
-
-// For UWSim
-ros::Publisher pose_pub;
 
 /* timer cb */
 void timer_cb(const ros::TimerEvent &event);
@@ -228,8 +223,6 @@ int main(int argc, char **argv)
     fin4_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/4/input", 1);
     fin5_pub = node->advertise<uuv_gazebo_ros_plugins_msgs::FloatStamped>("/armsauv/fins/5/input", 1);
 
-    pose_pub = node->advertise<geometry_msgs::Pose>("/armsauv/pose", 1);
-
     // control_loop_run = true;
     // static std::thread run_thread([&] { control_loop(); });
 
@@ -298,25 +291,6 @@ void posegt_cb(const nav_msgs::Odometry::ConstPtr &msg)
     y = msg->pose.pose.position.y;
     z = msg->pose.pose.position.z;
 
-    // Publish pose
-    geometry_msgs::Pose armsauv_pose;
-    armsauv_pose.position.x = msg->pose.pose.position.x;
-    armsauv_pose.position.y = -msg->pose.pose.position.y;
-    armsauv_pose.position.z = -msg->pose.pose.position.z;
-
-    double roll, pitch, yaw;
-
-    tf::Quaternion quat;
-    tf::quaternionMsgToTF(msg->pose.pose.orientation, quat);
-
-    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw); 
-    pitch = -pitch;
-    yaw = -yaw;
-
-    armsauv_pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
-
-    pose_pub.publish(armsauv_pose);
-
     // ROS_INFO("x: %f, y: %f, z: %f.",
     //          x,
     //          y,
@@ -339,11 +313,11 @@ void dvl_cb(const uuv_sensor_ros_plugins_msgs::DVL::ConstPtr &msg)
 
 void depth_cb(const std_msgs::Float64::ConstPtr &msg)
 {
-    lock_guard<std::mutex> guard(depth_input_mutex);
+   lock_guard<std::mutex> guard(depth_input_mutex);
 
     depth_input = msg->data;
-
-    // ROS_INFO("depth_input: %f", depth_input);
+   std::cout << "test";
+   // ROS_INFO("depth_input: %f", depth_input);
 }
 
 void pitch_cb(const std_msgs::Float64::ConstPtr &msg)
@@ -398,8 +372,7 @@ void control_loop()
         input->y_d = 0;
         input->depth = 0.0;
         input->pitch = 0.0;
-	input->yaw = 0;
-        // input->yaw = 10 * degree2rad;
+        input->yaw = 10 * degree2rad;
 
         controler_run(sensors, input, output, 0.1);
 
@@ -441,7 +414,7 @@ void control_loop()
             // 0 * degree2rad,
             0 * degree2rad,
             0 * degree2rad,
-            500);
+            1000);
     }
 
     delete sensors;
@@ -476,9 +449,7 @@ void timer_cb(const ros::TimerEvent &event)
     // input->yaw = 30 * degree2rad;
     input->yaw = 0;
 
-    std::cout << "target depth: " << input->depth << std::endl;
-
-    /* std::cout << sensors->x << " "
+    std::cout << sensors->x << " "
               << sensors->y << " "
               << sensors->z << " "
               //   << "| "
@@ -493,23 +464,158 @@ void timer_cb(const ros::TimerEvent &event)
               << sensors->roll_speed * rad2degree << " "
               << sensors->pitch_speed * rad2degree << " "
               << sensors->yaw_speed * rad2degree << " ";
-    */
+
     controler_run(sensors, input, output, 0.1);
 
-    std::cout << output->rouder * rad2degree << " "
-              << output->fwd_fin * rad2degree << " "
-              << output->aft_fin * rad2degree << " "
-              << std::endl;
+    static double rouder, fwd_fin, aft_fin;
 
+    // rouder = output->rouder;
+    // fwd_fin = output->fwd_fin;
+    // aft_fin = output->aft_fin;
+
+    static bool firstRun = true;
+    static bool zflag1 = false;
+    static bool zflag2 = false;
+
+
+// #define xz_test
+#ifdef xz_test
+
+    if (firstRun && sensors->x_speed > 2.0)
+    {
+        rouder = 0;
+        fwd_fin = -10 * degree2rad;
+        aft_fin = -10 * degree2rad;
+        firstRun = false;
+    }
+
+    if (sensors->pitch * rad2degree < -10)
+    {
+        rouder = 0;
+        fwd_fin = 10 * degree2rad;
+        aft_fin = 10 * degree2rad;
+    }
+
+    if (sensors->pitch * rad2degree > 10)
+    {
+        rouder = 0;
+        fwd_fin = -10 * degree2rad;
+        aft_fin = -10 * degree2rad;
+    }
+
+#endif
+
+// #define xy_test
+#ifdef xy_test
+
+    if (sensors->yaw * rad2degree < -10 )
+    {
+	zflag1=true;
+	zflag2=false;
+    }
+
+    if(zflag1)
+    {
+    	rouder = rouder - (0.5*degree2rad);
+        if(rouder < -10*degree2rad)
+	{	
+	rouder = -10 * degree2rad;
+	}
+
+        fwd_fin = 0;
+        aft_fin = 0;
+    }
+
+    if (sensors->yaw * rad2degree > 10)
+    {
+	    zflag1=false;
+	    zflag2=true;
+    }
+
+    if(zflag2)
+    {
+	rouder = rouder + (0.5*degree2rad);
+	if(rouder > 10*degree2rad)
+	{
+        rouder = 10 * degree2rad;
+	}
+        fwd_fin = 0;
+        aft_fin = 0;
+    }
+
+        if (firstRun && sensors->x_speed > 2.0)
+    {
+        rouder = 10 * degree2rad;
+        fwd_fin = 0;
+        aft_fin = 0;
+        firstRun = false;
+    }
+
+
+#endif
+
+//#define rouder_test
+#ifdef rouder_test
+    static double start_time = 0;
+    double now_time = 0;
+    if (firstRun && sensors->x_speed > 2.0)
+    {
+        start_time = ros::Time::now().toSec();
+        firstRun = false;
+    }
+
+    if (!firstRun)
+    {
+        now_time = ros::Time::now().toSec();
+
+        if (now_time - start_time > 30)
+        {
+            rouder = 0;
+            fwd_fin = 0;
+            aft_fin = 0;
+        }
+        else
+        {
+            rouder = 20 * degree2rad;
+            fwd_fin = 0;
+            aft_fin = 0;
+        }
+    }
+#endif
+
+
+/*    if (firstRun && sensors->x_speed > 6)
+    {
+        firstRun = false;
+    }
+    else
+    {
+        rouder = 0 * degree2rad;
+        fwd_fin = 0 * degree2rad;
+        aft_fin = 0 * degree2rad;
+    }
+
+    if (!firstRun)
+    {
+        rouder = 20 * degree2rad;
+        fwd_fin = -10 * degree2rad;
+        aft_fin = -10 * degree2rad;
+    }
+*/
     applyActuatorInput(
-        output->rouder,
+        rouder,
         // 0,
-        output->fwd_fin,
-        output->aft_fin,
-        // 0 * degree2rad,
-        // 0 * degree2rad,
-        // 0 * degree2rad,
+        fwd_fin,
+        aft_fin,
+        // 20 * degree2rad,
+        // -5 * degree2rad,
+        // 5 * degree2rad,
         1250);
+
+    std::cout << rouder * rad2degree << " "
+              << fwd_fin * rad2degree << " "
+              << aft_fin * rad2degree << " "
+              << std::endl;
 }
 
 void applyActuatorInput(double rouder, double fwd_fin, double aft_fin, double rpm)
@@ -705,7 +811,6 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     //航向
     e_psi = psi - REFpsi;
     dot_e_psi = dot_psi - REFdot_psi;
-    // dot_e_psi = r;
     S_psi = dot_e_psi + c_psi * e_psi;
 
     std::cout << REFz << " "
@@ -719,10 +824,6 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);
     L_theta = REFdot2_theta - g_t - c_theta * dot_e_theta - k_theta * pow(fabs(S_theta), alpha_theta) * sat(S_theta, boundary_thick);
     L_psi = REFdot2_psi - b_p - c_psi * dot_e_psi - k_psi * pow(fabs(S_psi), alpha_psi) * sat(S_psi, boundary_thick);
-
-    // S_psi = dot_e_psi + c_psi * e_psi;
-    // L_psi = -r - b_p - k_psi * S_psi;
-
 
     //指令计算
     static double deltab, deltas, deltar;

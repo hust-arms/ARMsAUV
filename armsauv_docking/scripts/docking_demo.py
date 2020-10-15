@@ -34,7 +34,7 @@ class DockingObserver:
     def getConfig(self):
         ''' Load parameters from rosparam server '''
         self.auv_odom_t_ = rospy.get_param("auv_odom_topic", "/armsauv/base_link")
-        self.arm_odom_t_ = rospy.get_param("arm_odom_topic", "/qt3/base_link")
+        self.arm_odom_t_ = rospy.get_param("arm_odom_topic", "/uvsm719/base_link")
 
         self.arm_mission_t_ = rospy.get_param("arm_mission_topic", "/arm_mission")
         self.auv_mission_t_ = rospy.get_param("auv_mission_topic", "/auv_mission")

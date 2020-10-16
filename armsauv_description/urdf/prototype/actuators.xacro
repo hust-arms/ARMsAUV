@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Adding the thruster units with the macro created in snippets.xacro -->
+    <!--
+    Important:
+        - The thruster IDs must be given as integers and must be unique to each thruster unit
+        - The thruster pose in the <origin> block is relative to the body's center of mass. Be
+          aware that Gazebo does not use the SNAME convention per default.
+    -->
+
+    <xacro:thruster_macro robot_namespace="${namespace}" thruster_id="0">
+        <origin xyz="-1.842 0 0" rpy="0 0 0" />
+    </xacro:thruster_macro>
+
+    <!-- Instantiate fins, if necessary -->
+    <xacro:front_fin_macro namespace="${namespace}" fin_id="0" mesh_filename="${front_fin_mesh_file}">
+      <origin xyz="0.528 -0.201 0" rpy="${0.5 * pi} 0 0" />
+    </xacro:front_fin_macro>
+
+    <xacro:front_fin_macro namespace="${namespace}" fin_id="1" mesh_filename="${front_fin_mesh_file}">
+      <origin xyz="0.528 0.201 0" rpy="${1.5 * pi} 0 0" />
+    </xacro:front_fin_macro>
+
+
+    <xacro:aft_fin_macro namespace="${namespace}" fin_id="2" mesh_filename="${aft_fin_mesh_file}">
+      <origin xyz="-1.537 0.136 0" rpy="${0.5 * pi} 0 0" />
+    </xacro:aft_fin_macro>
+
+    <xacro:aft_fin_macro namespace="${namespace}" fin_id="3" mesh_filename="${aft_fin_mesh_file}">
+      <origin xyz="-1.537 0 0.136" rpy="${1 * pi} 0 0" />
+    </xacro:aft_fin_macro>
+
+    <xacro:aft_fin_macro namespace="${namespace}" fin_id="4" mesh_filename="${aft_fin_mesh_file}">
+      <origin xyz="-1.537 -0.136 0" rpy="${1.5 * pi} 0 0" />
+    </xacro:aft_fin_macro>
+
+    <xacro:aft_fin_macro namespace="${namespace}" fin_id="5" mesh_filename="${aft_fin_mesh_file}">
+      <origin xyz="-1.537 0 -0.136" rpy="${0 * pi} 0 0" />
+    </xacro:aft_fin_macro>
+
+</robot>

@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- MACRO FOR THRUSTER UNITS  -->
+  
+  <!-- Provide the propeller mesh in a separate file with the rotation axis
+  over propeller's frame X-axis in DAE (Collada) or STL format.
+  -->
+  <xacro:property name="prop_mesh_file" value="file://$(find armsauv_description)/meshes/propeller.dae"/>
+
+  <!--
+    Thruster macro with integration of joint and link. The thrusters should
+    be initialized in the actuators.xacro file.
+  -->
+  <xacro:macro name="thruster_macro" params="robot_namespace thruster_id *origin">
+
+    <!--
+    Dummy link as place holder for the thruster frame,
+    since thrusters can often be inside the collision geometry
+    of the vehicle and may cause internal collisions if set otherwise
+    -->
+    <link name="${robot_namespace}/thruster_${thruster_id}">
+
+      <visual>
+        <geometry>
+          <mesh filename="${prop_mesh_file}" scale="1 1 1" />
+        </geometry>
+      </visual>
+
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.000000017" ixy="0.0" ixz="0.0"
+               iyy="0.000000017" iyz="0.0"
+               izz="0.000000017" />
+      </inertial>
+    </link>
+
+    <!-- Joint between thruster link and vehicle base link -->
+    <joint name="${robot_namespace}/thruster_${thruster_id}_joint" type="continuous">
+      <xacro:insert_block name="origin" />
+      <axis xyz="1 0 0" />
+      <parent link="${robot_namespace}/base_link" />
+      <child link="${robot_namespace}/thruster_${thruster_id}" />
+    </joint>
+
+    <gazebo>
+      <!-- Thruster ROS plugin -->
+      <plugin name="${robot_namespace}_${thruster_id}_thruster_model" filename="libuuv_thruster_ros_plugin.so">
+        <!-- Name of the thruster link -->
+        <linkName>${robot_namespace}/thruster_${thruster_id}</linkName>
+
+        <!-- Name of the joint between thruster and vehicle base link -->
+        <jointName>${robot_namespace}/thruster_${thruster_id}_joint</jointName>
+
+        <!-- Make the thruster aware of its id -->
+        <thrusterID>${thruster_id}</thrusterID>
+
+        <!-- Gain of the input command signal -->
+        <gain>1</gain>
+
+        <!-- Maximum allowed input value for the input signal for thruster unit -->
+        <clampMax>2300</clampMax>
+
+        <!-- Minimum allowed value for the input signal for thruster unit -->
+        <clampMin>-2300</clampMin>
+
+        <!-- Minimum and maximum thrust force output allowed -->
+        <thrustMin>-125</thrustMin>
+        <thrustMax>125</thrustMax>
+
+        <!--
+        Value from 0 to 1 to set the efficiency of the output thrust force
+        Default value is 1.0
+        -->
+        <thrust_efficiency>1</thrust_efficiency>
+
+        <!--
+        Value from 0 to 1 to set the efficiency of the propeller as a factor
+        to be multiplied to the current value of the state variable at each
+        iteration.
+        Default value is 1.0
+        -->
+        <propeller_efficiency>1</propeller_efficiency>
+
+        <dynamics>
+          <type>FirstOrder</type>
+          <timeConstant>0.05</timeConstant>
+        </dynamics>
+
+        <!-- <conversion>
+          <type>Basic</type>
+          <rotorConstant>0.0002</rotorConstant>
+        </conversion>         -->
+
+        <!-- 3) Linear interpolation
+        If you have access to the thruster's data sheet, for example,
+        you can enter samples of the curve's input and output values
+        and the thruster output will be found through linear interpolation
+        of the given samples.
+        -->
+        <conversion>
+          <type>LinearInterp</type>
+          <inputValues>888 1500 1700 1900 2100 2300</inputValues>
+          <outputValues>0 55 70 88 105 125</outputValues>
+        </conversion>
+
+      </plugin>
+    </gazebo>
+
+    <gazebo reference="${robot_namespace}/thruster_${thruster_id}">
+      <selfCollide>false</selfCollide>
+    </gazebo>
+  </xacro:macro>
+
+
+  <!-- MACRO FOR FIN/RUDDER UNITS  -->
+  
+  <!-- A separate mesh for the fin should be stored in the meshes folder -->
+  <xacro:property name="front_fin_mesh_file" value="file://$(find armsauv_description)/meshes/front_fin.dae"/>
+  <xacro:property name="aft_fin_mesh_file" value="file://$(find armsauv_description)/meshes/aft_fin.dae"/>
+
+  <!-- Fin properties -->
+
+  <xacro:property name="fin_rho" value="1025"/>
+
+  <xacro:property name="front_fin_area" value="0.0127"/>
+  <xacro:property name="front_fin_lift_coefficient" value="20.843"/>
+  <xacro:property name="front_fin_drag_coefficient" value="1.98"/>
+
+  <xacro:macro name="front_fin_macro" params="namespace fin_id *origin mesh_filename">
+      <xacro:fin_quadratic_macro
+        namespace="${namespace}"
+        parent_link="${namespace}/base_link"
+        fin_id="${fin_id}"
+        min_joint_limit="${-90.0 * d2r}"
+        max_joint_limit="${90.0 * d2r}"
+        mesh_filename="${mesh_filename}"
+        fin_dynamics_time_constant="0.2"
+        lift_constant="${0.5 * fin_rho * front_fin_area * front_fin_lift_coefficient}"
+        drag_constant="${0.5 * fin_rho * front_fin_area * front_fin_drag_coefficient}"
+        current_velocity_topic="current_velocity">
+        <xacro:insert_block name="origin"/>
+      </xacro:fin_quadratic_macro>
+  </xacro:macro>
+
+  <xacro:property name="aft_fin_area" value="0.0172"/>
+  <xacro:property name="aft_fin_lift_coefficient" value="19.1395"/>
+  <xacro:property name="aft_fin_drag_coefficient" value="1.98"/>
+
+  <xacro:macro name="aft_fin_macro" params="namespace fin_id *origin mesh_filename">
+      <xacro:fin_quadratic_macro
+        namespace="${namespace}"
+        parent_link="${namespace}/base_link"
+        fin_id="${fin_id}"
+        min_joint_limit="${-90.0 * d2r}"
+        max_joint_limit="${90.0 * d2r}"
+        mesh_filename="${mesh_filename}"
+        fin_dynamics_time_constant="0.2"
+        lift_constant="${0.5 * fin_rho * aft_fin_area * aft_fin_lift_coefficient}"
+        drag_constant="${0.5 * fin_rho * aft_fin_area * aft_fin_drag_coefficient}"
+        current_velocity_topic="current_velocity">
+        <xacro:insert_block name="origin"/>
+      </xacro:fin_quadratic_macro>
+  </xacro:macro>
+
+  <!-- <xacro:macro name="fin_macro" params="namespace fin_id *origin mesh_filename">
+      <xacro:fin_two_lines_macro
+        namespace="${namespace}"
+        parent_link="${namespace}/base_link"
+        fin_id="${fin_id}"
+        min_joint_limit="${-80*d2r}"
+        max_joint_limit="${80*d2r}"
+        mesh_filename="${mesh_filename}"
+        fin_dynamics_time_constant="0.1"
+        fin_cross_section_area="${fin_area}"        
+        current_velocity_topic="current_velocity"
+        fluid_density="1025.0"
+        a0="0.0"
+        alpha_stall="1.57"
+        cla="${0.5 * fin_rho * fin_area * fin_lift_coefficient}"
+        cla_stall="0.0"
+        cda="${0.5 * fin_rho * fin_area * fin_drag_coefficient}"
+        cda_stall="0">
+        <xacro:insert_block name="origin"/>
+      </xacro:fin_two_lines_macro>
+    </xacro:macro> -->
+
+    <!-- <xacro:macro name="fin_macro" params="namespace fin_id *origin mesh_filename">
+      <xacro:fin_two_lines_macro
+        namespace="${namespace}"
+        parent_link="${namespace}/base_link"
+        fin_id="${fin_id}"
+        min_joint_limit="${-80*d2r}"
+        max_joint_limit="${80*d2r}"
+        mesh_filename="${mesh_filename}"
+        fin_dynamics_time_constant="0.1"
+        fin_cross_section_area="${fin_area}"        
+        current_velocity_topic="current_velocity"
+        fluid_density="1025.0"
+        a0="0.0"
+        alpha_stall="0.436332313" 
+        cla="2.435070629"
+        cla_stall="0"
+        cda="0"
+        cda_stall="0">
+        <xacro:insert_block name="origin"/>
+      </xacro:fin_two_lines_macro>
+    </xacro:macro> -->
+
+    <!-- cla_stall="-1.929963096"
+        cda="1.101841914" -->
+    
+</robot>

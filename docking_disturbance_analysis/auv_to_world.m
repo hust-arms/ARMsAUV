@@ -1,5 +1,5 @@
 function [x_auv, y_auv, z_auv] = auv_to_world(x_auvb, y_auvb, z_auvb, x_w, y_w, z_w, phi, theta, psi, num)
-%% Transform auv coordinate into world frame
+%% 转换AUV艇体上坐标点到惯性坐标系
 x_auv = []; y_auv = []; z_auv = [];
 for k=1:num
 x_auv(k) = x_w + x_auvb(k) * cos(psi) * cos(theta) + y_auvb(k) * (cos(psi) * sin(theta) * sin(phi) - sin(psi) * cos(phi)) + z_auvb(k) * (cos(psi) * sin(theta) * cos(phi) + sin(psi) * sin(phi));

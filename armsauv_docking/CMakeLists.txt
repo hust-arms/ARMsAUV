@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   tf
-  message_generation
+  #  message_generation
   std_msgs
   nav_msgs
   geometry_msgs
@@ -20,10 +20,10 @@ find_package(catkin REQUIRED COMPONENTS
 
 # catkin_python_setup()
 
-add_message_files(
-  FILES
-  Usbl.msg
-)
+# add_message_files(
+#   FILES
+#   Usbl.msg
+# )
 
 # add_service_files(
 #   FILES

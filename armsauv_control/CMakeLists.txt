@@ -148,6 +148,10 @@ add_executable(armsauv_pidctrl_node
   src/armsauv_control_pid.cpp
 )
 
+add_executable(armsauv_pidctrl_usblnotraw_node
+  src/armsauv_control_pid_usblnotraw.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -169,6 +173,12 @@ add_dependencies(armsauv_pidctrl_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
+
+add_dependencies(armsauv_pidctrl_usblnotraw_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
 ## Specify libraries to link a library or executable 
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
@@ -179,6 +189,11 @@ target_link_libraries(${PROJECT_NAME}_node
 # )
 
 target_link_libraries(armsauv_pidctrl_node
+  pid_controller
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(armsauv_pidctrl_usblnotraw_node
   pid_controller
   ${catkin_LIBRARIES}
 )

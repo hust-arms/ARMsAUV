@@ -140,9 +140,9 @@ add_executable(${PROJECT_NAME}_node
   armsauv_control.cpp
 )
 
-add_executable(armsauv_smc_node
-  sm_ctrl.cpp
-)
+# add_executable(armsauv_smc_node
+#   sm_ctrl.cpp
+# )
 
 add_executable(armsauv_pidctrl_node
   src/armsauv_control_pid.cpp
@@ -160,10 +160,10 @@ add_dependencies(${PROJECT_NAME}_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
   ${catkin_EXPORTED_TARGETS} 
 )
-add_dependencies(armsauv_smc_node
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
+# add_dependencies(armsauv_smc_node
+#   ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#   ${catkin_EXPORTED_TARGETS}
+# )
 
 add_dependencies(armsauv_pidctrl_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -174,9 +174,9 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(armsauv_smc_node
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(armsauv_smc_node
+#   ${catkin_LIBRARIES}
+# )
 
 target_link_libraries(armsauv_pidctrl_node
   pid_controller

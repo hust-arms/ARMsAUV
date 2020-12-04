@@ -69,6 +69,10 @@ add_library(usbl_simulator
   src/usbl_simulator.cpp
 )
 
+add_library(usbl_notraw_simulator
+  src/usbl_notraw_simulator.cpp
+)
+
 add_library(docking_recorder
   src/docking_recorder.cpp
 )
@@ -86,14 +90,24 @@ add_dependencies(docking_recorder ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_E
 
 add_executable(usbl_simulator_node src/usbl_simulator_node.cpp)
 
+add_executable(usbl_notraw_simulator_node src/usbl_notraw_simulator_node.cpp)
+
 add_executable(docking_recorder_node src/docking_recorder_node.cpp)
 
 add_dependencies(usbl_simulator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_dependencies(usbl_notraw_simulator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_dependencies(docking_recorder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(usbl_simulator_node 
   usbl_simulator
+  common
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(usbl_notraw_simulator_node 
+  usbl_notraw_simulator
   common
   ${catkin_LIBRARIES}
 )

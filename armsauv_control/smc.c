@@ -1,4 +1,4 @@
-﻿#include "smc.h"
+﻿#include "armsauv_control/smc.h"
 #include <stdio.h>
 #include <math.h>
 

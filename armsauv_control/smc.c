@@ -1,4 +1,4 @@
-﻿#include "armsauv_control/smc.h"
+﻿#include "../incl/smc.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -21,22 +21,27 @@ void paramInit(double _c_z, double _k_z, double _alpha_z, double _c_theta, doubl
     c_z = _c_z;
     k_z = _k_z;
     alpha_z = _alpha_z;
+	
     c_theta = _c_theta;
     k_theta = _k_theta;
     alpha_theta = _alpha_theta;
+	
     c_psi = _c_psi;
     k_psi = _k_psi;
     alpha_psi = _alpha_psi;
+    
+    printf("c = %f, k = %f \n",c_psi, k_psi);
+	
     boundary_thick = _boundary_thick;
 }
 
 /**
- * @brief courseControl 滑模航向控制，右倾为正，艉倾为正，艏向角0-360
+ * @brief courseControl 滑模航向控制，右倾为正，艉倾为正，艏向角0-2PI
  * @param ROB[4] 输入当前艇体状态，ROB[4] ={psi,u,v,r} 都是国际标准单位
- * @param REF[1] 输入期望状态，REF[1] = {refpsi} 都是国际标准单位
+ * @param REF[1] 输入期望状态，REF[2] = {refpsi,dot_refpsi} 都是国际标准单位
  * @param deltar 方向舵舵角，右转为正，单位：弧度
  */
-void courseControl(const double ROB[4], const double REF[1], double *deltar)
+void courseSMCControl(const double ROB[4], const double REF[2], float *deltar)
 {
     double psi = ROB[0];
     double u = ROB[1];
@@ -44,6 +49,7 @@ void courseControl(const double ROB[4], const double REF[1], double *deltar)
     double r = ROB[3];
 
     double refpsi = REF[0];
+	double dot_refpsi = REF[1];
 
     //水平面艇体状态计算
     //横向运动方程变量替换(变量中的d为delta的缩写,p为psi的缩写)
@@ -61,17 +67,20 @@ void courseControl(const double ROB[4], const double REF[1], double *deltar)
     double b_pdr = (a_yv*a_pdr-a_pv*a_ydr)/(a_yv*a_pr-a_pv*a_yr);
 
     double e_psi = psi - refpsi;
-    if(e_psi >= PI)
+    if(e_psi >= Pi)
         e_psi -= PI2;
-    if(e_psi <= -PI)
+    if(e_psi <= -Pi)
         e_psi += PI2;
-    double dot_e_psi = r;
+    double dot_e_psi = r - dot_refpsi;
     double S_psi = dot_e_psi + c_psi*e_psi;
-    double L_psi = -r - b_p -k_psi*S_psi ;
+    double L_psi = -c_psi*r - b_p -k_psi*S_psi ;
 
     *deltar = -L_psi/b_pdr;
+    printf("c = %f, k = %f \n",c_psi, k_psi);
+    printf("e_psi = %f, dot_e_psi = %f, S_psi = %f, L_psi = %f, b_pdr = %f, deltar = %f \n",e_psi,dot_e_psi,S_psi,L_psi,b_pdr,(*deltar)*57.3);
     if (fabs(*deltar) > MAX_RUDDER_RAD)
-        *deltar = MAX_RUDDER_RAD * sign(*deltar);
+        *deltar = MAX_RUDDER_RAD * sign_smc(*deltar);
+        
 }
 
 /**
@@ -82,8 +91,8 @@ void courseControl(const double ROB[4], const double REF[1], double *deltar)
  * @param *deltab 期望艏舵角，上浮舵为正，单位：弧度
  * @param *deltas 期望艉舵角，右转为正，单位：弧度
  */
-void control(const double ROB[12], const double REF[9], double *deltar, double
-             *deltab, double *deltas)
+void control(const double ROB[12], const double REF[9], float *deltar, float
+             *deltab, float *deltas)
 {
   double a_zw;
   double a_zq;
@@ -127,7 +136,7 @@ void control(const double ROB[12], const double REF[9], double *deltar, double
   a_zq = -(m * x_G + Z_dotq);
   a_zs = Z_uuds * ROB[6] * ROB[6];
   a_zb = Z_uudb * ROB[6] * ROB[6];
-  f_z = ((((((m * ROB[6] * ROB[10] + m * z_G * ROB[10] * ROB[10]) - X_dotu * ROB[6] * ROB[10]) + Z_ww * ROB[8] * fabs(ROB[8])) + Z_uw * ROB[6] *ROB[8]) + Z_qq * ROB[10] * fabs(ROB[10])) + Z_uq * ROB[6] * ROB[10])+ (W - B) * cos(ROB[4]);
+  f_z = ((((((m * ROB[6] * ROB[10] + m * z_G * ROB[10] * ROB[10]) - X_dotu * ROB[6] * ROB[10]) + Z_ww * ROB[8] * fabs(ROB[8])) + Z_uw * ROB[6] *ROB[8]) + Z_qq * ROB[10] * fabs(ROB[10])) + Z_uq * ROB[6] * ROB[10])+ (WW - BB) * cos(ROB[4]);
 
   /* 纵倾运动方程变量替换(变量中的t为theta的缩写) */
   a_tw = -(m * x_G + M_dotw);
@@ -138,7 +147,7 @@ void control(const double ROB[12], const double REF[9], double *deltar, double
                (Z_dotw * ROB[8] + Z_dotq * ROB[10]) * ROB[6]) + X_dotu * ROB[6] *
               ROB[8]) + M_ww * ROB[8] * fabs(ROB[8])) + M_uw * ROB[6] * ROB[8])
            + M_qq * ROB[10] * fabs(ROB[10])) + M_uq * ROB[6] * ROB[10]) - (z_G *
-          W - z_B * B) * sin(ROB[4])) - (x_G * W - x_B * B) * cos(ROB[4]);
+          WW - z_B * BB) * sin(ROB[4])) - (x_G * WW - x_B * BB) * cos(ROB[4]);
 
   /* dot_w和dot_q表达式中的量 */
   b_tb = (a_zw * a_tb - a_tw * a_zb) / (a_zw * a_tq - a_zq * a_tw);
@@ -182,9 +191,9 @@ void control(const double ROB[12], const double REF[9], double *deltar, double
 
   /* 航向 */
   double e_psi = ROB[5] - REF[6];
-  if(e_psi >= PI)
+  if(e_psi >= Pi)
       e_psi -= PI2;
-  if(e_psi <= -PI)
+  if(e_psi <= -Pi)
       e_psi += PI2;
   dot_e_psi = ROB[11] - REF[7];
   S_psi = dot_e_psi + c_psi * (e_psi);
@@ -305,7 +314,7 @@ void control(const double ROB[12], const double REF[9], double *deltar, double
  * @param deltar 期望方向舵舵角，右转为正，单位：弧度
  * @param dt 调用时间间隔，用于计算期望状态的导数和二阶导
  */
-void controler_run(const double ROB[12],  const double REF[3], double* deltab, double* deltas, double* deltar, double dt)
+void controler_run(const double ROB[12],  const double REF[3], float* deltab, float* deltas, float* deltar, double dt)
 {
     //艇体位姿和速度变量
     static double x, y, z, phi, theta, psi, u, v, w, p, q, r;
@@ -365,13 +374,13 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
     a_zq = -(m * x_G + Z_dotq);
     a_zs = Z_uuds * u * u;
     a_zb = Z_uudb * u * u;
-    f_z = m * u * q + m * z_G * q * q - X_dotu * u * q + Z_ww * w * fabs(w) + Z_uw * u * w + Z_qq * q * fabs(q) + Z_uq * u * q + (W - B) * cos(theta);
+    f_z = m * u * q + m * z_G * q * q - X_dotu * u * q + Z_ww * w * fabs(w) + Z_uw * u * w + Z_qq * q * fabs(q) + Z_uq * u * q + (WW - BB) * cos(theta);
     //纵倾运动方程变量替换(变量中的t为theta的缩写)
     a_tw = -(m * x_G + M_dotw);
     a_tq = I_yy - M_dotq;
     a_ts = M_uuds * u * u;
     a_tb = M_uudb * u * u;
-    f_t = -m * z_G * w * q - m * x_G * u * q - (Z_dotw * w + Z_dotq * q) * u + X_dotu * u * w + M_ww * w * fabs(w) + M_uw * u * w + M_qq * q * fabs(q) + M_uq * u * q - (z_G * W - z_B * B) * sin(theta) - (x_G * W - x_B * B) * cos(theta);
+    f_t = -m * z_G * w * q - m * x_G * u * q - (Z_dotw * w + Z_dotq * q) * u + X_dotu * u * w + M_ww * w * fabs(w) + M_uw * u * w + M_qq * q * fabs(q) + M_uq * u * q - (z_G * WW - z_B * BB) * sin(theta) - (x_G * WW - x_B * BB) * cos(theta);
     //dot_w和dot_q表达式中的量
     b_z = (a_tq * f_z - a_zq * f_t) / (a_zw * a_tq - a_zq * a_tw);
     b_zb = (a_tq * a_zb - a_zq * a_tb) / (a_zw * a_tq - a_zq * a_tw);
@@ -432,9 +441,9 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
 
     //航向
     e_psi = psi - REFpsi;
-    if(e_psi >= PI)
+    if(e_psi >= Pi)
         e_psi -= PI2;
-    if(e_psi <= -PI)
+    if(e_psi <= -Pi)
         e_psi += PI2;
     dot_e_psi = dot_psi - REFdot_psi;
     S_psi = dot_e_psi + c_psi * e_psi;
@@ -451,29 +460,29 @@ void controler_run(const double ROB[12],  const double REF[3], double* deltab, d
     *deltar = -L_psi / b_pdr;
 
     if (fabs(*deltab) > MAX_RUDDER_RAD)
-        *deltab = MAX_RUDDER_RAD * sign(*deltab);
+        *deltab = MAX_RUDDER_RAD * sign_smc(*deltab);
 
     if (fabs(*deltas) > MAX_RUDDER_RAD)
-        *deltas = MAX_RUDDER_RAD * sign(*deltas);
+        *deltas = MAX_RUDDER_RAD * sign_smc(*deltas);
 
     if (fabs(*deltar) > MAX_RUDDER_RAD)
-        *deltar = MAX_RUDDER_RAD * sign(*deltar);
+        *deltar = MAX_RUDDER_RAD * sign_smc(*deltar);
 }
 
 double sat(double input, double thick)
 {
     if (fabs(input) >= thick)
-        return sign(input);
+        return sign_smc(input)*thick;
     else
         return input / thick;
 }
 
 /**
- * @brief sign 符号函数，判断输入参数的符号
+ * @brief sign_smc 符号函数，判断输入参数的符号
  * @param input 输入参数
  * @return -1,0,1 三者之一
  */
-int sign(double input)
+int sign_smc(double input)
 {
     if (input > 0)
         return 1;

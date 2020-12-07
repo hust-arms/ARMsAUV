@@ -442,9 +442,9 @@ void timer_cb(const ros::TimerEvent &event)
     sensors->pitch_speed = -getPitchSpeed();
     sensors->yaw_speed = -getYawSpeed();
 
-    input->x_d = 0;
-    input->y_d = 0;
-    input->depth = 20.0;
+    input->x_d = 30;
+    input->y_d = 10;
+    input->depth = 0.0;
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;
     input->yaw = 0;
@@ -678,7 +678,8 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     //控制参数
     static double c_z = 0.08, k_z = 0.1, alpha_z = 0.6;             //深度通道参数
     static double c_theta = 0.1, k_theta = 0.1, alpha_theta = 0.6; //纵倾通道参数
-    static double c_psi = 0.8, k_psi = 0.8, alpha_psi = 0.8;       //航向通道参数
+    // static double c_psi = 0.8, k_psi = 0.8, alpha_psi = 0.8;       //航向通道参数
+    static double c_psi = 1.0, k_psi = 0.18, alpha_psi = 5.5;       //航向通道参数
     static double boundary_thick = 0.1;                             //边界层厚度
 
     //艇体位姿和速度变量

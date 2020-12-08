@@ -137,7 +137,8 @@ add_library(pid_controller
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
-  armsauv_control.cpp
+    #  armsauv_control.cpp
+    armsauv_control_copy.cpp
 )
 
 # add_executable(armsauv_smc_node
@@ -185,7 +186,7 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 # target_link_libraries(armsauv_smc_node
-#   ${catkin_LIBRARIES}
+#  ${catkin_LIBRARIES}
 # )
 
 target_link_libraries(armsauv_pidctrl_node

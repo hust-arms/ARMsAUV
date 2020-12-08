@@ -470,13 +470,15 @@ void timer_cb(const ros::TimerEvent &event)
     sensors->yaw_speed = -getYawSpeed();
 
     input->x_d = 0;
-    input->y_d = 0;
-    input->depth = 20.0;
+    input->y_d = 10.0;
+    input->depth = 0.0;
     input->pitch = 0.0;
     // input->yaw = 30 * degree2rad;
     input->yaw = 0;
 
-    std::cout << "target depth: " << input->depth << std::endl;
+    printf("target y: %f target depth: %f target yaw: %f\n", input->y_d, input->depth, input->yaw);
+
+    // std::cout << "target y: " << input->y_d << "target depth: " << input->depth << std::endl;
 
     /* std::cout << sensors->x << " "
               << sensors->y << " "
@@ -572,7 +574,8 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     //控制参数
     static double c_z = 0.08, k_z = 0.1, alpha_z = 0.6;             //深度通道参数
     static double c_theta = 0.1, k_theta = 0.1, alpha_theta = 0.6; //纵倾通道参数
-    static double c_psi = 0.8, k_psi = 0.8, alpha_psi = 0.8;       //航向通道参数
+    // static double c_psi = 0.8, k_psi = 0.8, alpha_psi = 0.8;       //航向通道参数
+    static double c_psi = 0.15, k_psi = 0.02, alpha_psi = 1.0;       //航向通道参数
     static double boundary_thick = 0.1;                             //边界层厚度
 
     //艇体位姿和速度变量
@@ -616,7 +619,7 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
 
     lateral_dis = (x - input->x_d) * sin(input->yaw) - (y - input->y_d) * cos(input->yaw); //计算横向偏距
     std::cout << lateral_dis << " ";
-    REFpsi = input->yaw + atan(lateral_dis / 10);
+    REFpsi = input->yaw + atan(lateral_dis / 3.5); // LOS 
     //REFpsi = input->yaw;
     REFdot_psi = (REFpsi - preREFpsi) / dt;
     REFdot2_psi = (REFdot_psi - preREFdot_psi) / dt;
@@ -719,6 +722,7 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);
     L_theta = REFdot2_theta - g_t - c_theta * dot_e_theta - k_theta * pow(fabs(S_theta), alpha_theta) * sat(S_theta, boundary_thick);
     L_psi = REFdot2_psi - b_p - c_psi * dot_e_psi - k_psi * pow(fabs(S_psi), alpha_psi) * sat(S_psi, boundary_thick);
+    // L_psi = -c_psi * dot_psi - b_p - k_psi * S_psi;
 
     // S_psi = dot_e_psi + c_psi * e_psi;
     // L_psi = -r - b_p - k_psi * S_psi;

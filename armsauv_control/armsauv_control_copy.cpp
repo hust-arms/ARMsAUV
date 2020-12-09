@@ -610,15 +610,17 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     REFdot2_z = 0;          //深度二阶导
     preREFz = REFz;         //更新上一周期的深度值
     preREFdot_z = REFdot_z; //更新上一周期深度一阶导
+    printf("REFz:%f REFdotz%f REFdot2z:%f preREFz:%f preREFdotz:%f\n", REFz, REFdot_z, REFdot2_z, preREFz, preREFdot_z);
 
     REFtheta = input->pitch + 0.1 * atan((z - REFz) / (4 * L)); //期望的纵倾加上纵倾制导量
     REFdot_theta = (REFtheta - preREFtheta) / dt;
     REFdot2_theta = (REFdot_theta - preREFdot_theta) / dt;
     preREFtheta = REFtheta;
     preREFdot_theta = REFdot_theta;
+    printf("REFtheta:%f REFdot_theta%f REFdot2_theta:%f preREFtheta:%f preREFdottheta:%f\n", REFtheta, REFdot_theta, REFdot2_theta, preREFtheta, preREFdot_theta);
 
     lateral_dis = (x - input->x_d) * sin(input->yaw) - (y - input->y_d) * cos(input->yaw); //计算横向偏距
-    std::cout << lateral_dis << " ";
+    std::cout << "LateralDist" << lateral_dis << std::endl;
     REFpsi = input->yaw + atan(lateral_dis / 3.5); // LOS 
     //REFpsi = input->yaw;
     REFdot_psi = (REFpsi - preREFpsi) / dt;
@@ -627,6 +629,7 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     //REFdot2_psi = 0;
     preREFpsi = REFpsi;
     preREFdot_psi = REFdot_psi;
+    printf("REFpsi:%f REFdot_psi%f REFdot2_psi:%f preREFpsi:%f preREFdotpsi:%f\n", REFpsi, REFdot_psi, REFdot2_psi, preREFpsi, preREFdot_psi);
 
     //艇体深度面状态变量
     static double a_zw, a_zq, a_zs, a_zb, f_z;      //垂向运动方程中的变量替换
@@ -654,6 +657,7 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     b_t = (a_zw * f_t - a_tw * f_z) / (a_zw * a_tq - a_zq * a_tw);
     b_tb = (a_zw * a_tb - a_tw * a_zb) / (a_zw * a_tq - a_zq * a_tw);
     b_ts = (a_zw * a_ts - a_tw * a_zs) / (a_zw * a_tq - a_zq * a_tw);
+    printf("common1:%f\n", a_zw * a_tq - a_zq * a_tw);
     //dot2_z和dot2_theta表达式中的量
     g_z = b_z * cos(theta) - u * q * cos(theta) - w * q * sin(theta);
     g_zb = b_zb * cos(theta);
@@ -664,6 +668,8 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     //深度及纵倾的一阶导
     dot_z = -u * sin(theta) + w * cos(theta);
     dot_theta = q;
+    printf("a_zw:%f a_zq:%f a_zs:%f a_zb:%f f_z:%f a_tw%f a_tq:%f a_ts:%f a_tb:%f f_t:%f b_z:%f b_zb:%f b_zs:%f b_t:%f b_tb:%f b_ts:%f g_z:%f g_zb:%f g_zs:%f g_t:%f g_tb:%f g_ts:%f\n", 
+           a_zw, a_zq, a_zs, f_z, a_tw, a_tq, a_ts, a_tb, f_t, b_z, b_zb, b_zs, b_t, b_tb, b_ts, g_z, g_zb, g_zs, g_t, g_tb, g_ts);
 
     //艇体水平面状态变量
     static double a_yv, a_yr, a_ydr, f_y; //横向运动方程变量替换
@@ -688,6 +694,8 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     b_pdr = (a_yv * a_pdr - a_pv * a_ydr) / (a_yv * a_pr - a_pv * a_yr);
     //航向psi的一阶导
     dot_psi = r;
+    printf("b_y:%f b_ydr:%f b_p:%f b_pdr:%f\n", b_y, b_ydr, b_p, b_pdr);
+    printf("common2:%f",a_yv * a_pr - a_pv * a_yr);
 
     //滑模控制
     static double e_z, dot_e_z, S_z;
@@ -711,12 +719,13 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     // dot_e_psi = r;
     S_psi = dot_e_psi + c_psi * e_psi;
 
-    std::cout << REFz << " "
-              << REFtheta * 57.3 << " "
-              << REFpsi * 57.3 << " "
-              << e_z << " "
-              << e_theta * 57.3 << " "
-              << e_psi * 57.3 << " ";
+    //  std::cout << REFz << " "
+    //            << REFtheta * 57.3 << " "
+    //            << REFpsi * 57.3 << " "
+    //            << e_z << " "
+    //            << e_theta * 57.3 << " "
+    //            << e_psi * 57.3 << " ";
+    printf("REFz:%f REFtheta:%f REFpsi:%f Ez%f Etheta%f Epsi%f\n", REFz, REFtheta*57.3, REFpsi*57.3, e_z, e_theta*57.3, e_psi*57.3);
 
     //指令计算公式中的中间量
     L_z = REFdot2_z - g_z - c_z * dot_e_z - k_z * pow(fabs(S_z), alpha_z) * sat(S_z, boundary_thick);
@@ -733,6 +742,9 @@ void controler_run(sensors_data *sensors, controler_input *input, controler_outp
     deltab = (L_z * g_ts - L_theta * g_zs) / (g_zb * g_ts - g_tb * g_zs);
     deltas = (L_theta * g_zb - L_z * g_tb) / (g_zb * g_ts - g_tb * g_zs);
     deltar = L_psi / b_pdr;
+    printf("g_zb:%f g_ts:%f g_tb:%f g_zs:%f\n", g_zb, g_ts, g_tb, g_zs);
+    printf("common3:%f\n",g_zb * g_ts - g_tb * g_zs);
+    printf("deltab:%f deltas:%f deltar:%f\n", deltab, deltas, deltar);
 
     if (fabs(deltab) > 30 / 57.3)
         deltab = (30 / 57.3) * sign(deltab);

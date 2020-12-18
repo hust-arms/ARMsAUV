@@ -26,9 +26,7 @@
     Open the meshes for the RexROV vehicle in Blender to see an example on the mesh placement.
   -->
   <xacro:property name="visual_mesh_file" value="file://$(find armsauv_description)/meshes/body.dae"/>
-
-  <!-- Collision geometry mesh, usually in STL format (it is recommended to keep
-  this geometry as simple as possible to improve the performance the physics engine
+<!-- Collision geometry mesh, usually in STL format (it is recommended to keep this geometry as simple as possible to improve the performance the physics engine
   regarding the computation of collision forces) -->
   <xacro:property name="collision_mesh_file" value="file://$(find armsauv_description)/meshes/body.dae"/>
 
@@ -64,40 +62,70 @@
       </collision>
     </link>
 
-    <link name="${namespace}/camera_link">
-      <mass value="0.03"/>
+    <link name="${namespace}/camera_link0">
+      <mass value="0.00000000001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
-          ixx="0.0000450"
-          iyy="0.0001746"
-          izz="0.0001746"
+          ixx="0.0000000000017"
+          iyy="0.0000000000017"
+          izz="0.0000000000017"
           ixy="0"
           ixz="0"
           iyz="0"/>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 1.57"/>
         <geometry>
-          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera/mesh/mono_camera.dae" scale="1 1 1"/>
+          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera.dae" scale="1 1 1"/>
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 1.57"/>
         <geometry>
-          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera/mesh/mono_camera.dae" scale="1 1 1"/>
+          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera.dae" scale="1 1 1"/>
         </geometry>
       </collision>
     </link>
 
-    <joint name="${namespace}/camera_to_base" type="fixed">
+    <joint name="${namespace}/camera_to_base0" type="fixed">
       <parent link ="${namespace}/base_link"/>
-      <child link ="${namespace}/camera_link"/>
-      <origin rpy="0 0 0" xyz="0.85 0 0"/>
+      <child link ="${namespace}/camera_link0"/>
+      <origin rpy="0 0 0" xyz="0.85 0.056 0.012"/>
       <axis xyz="1 0 0"/>
     </joint>
 
-    <!--<link name="${namespace}/multibeam_sonar_link" type="fixed">
-      <mass value="0.02"/>
+    <link name="${namespace}/camera_link1">
+      <mass value="0.00000000001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+          ixx="0.0000000000017"
+          iyy="0.0000000000017"
+          izz="0.0000000000017"
+          ixy="0"
+          ixz="0"
+          iyz="0"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 1.57"/>
+        <geometry>
+          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 1.57"/>
+        <geometry>
+          <mesh filename="file://$(find armsauv_description)/meshes/sensors/mono_camera.dae" scale="1 1 1"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${namespace}/camera_to_base1" type="fixed">
+      <parent link ="${namespace}/base_link"/>
+      <child link ="${namespace}/camera_link1"/>
+      <origin rpy="0 0 0" xyz="0.85 -0.056 0.012"/>
+      <axis xyz="1 0 0"/>
+    </joint>
+    
+    <!--<link name="${namespace}/multibeam_sonar_link" type="fixed">
+      <mass value="0.02"/> <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
           ixx="0.00001"
           iyy="0.00001"
@@ -127,25 +155,25 @@
     </joint>-->
 
     <link name="${namespace}/forward_looking_sonar_link">
-      <mass value="0.02"/>
+      <mass value="0.00000000001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
-          ixx="0.00001"
-          iyy="0.00001"
-          izz="0.00001"
+          ixx="0.0000000000017"
+          iyy="0.0000000000017"
+          izz="0.0000000000017"
           ixy="0.0"
           ixz="0.0"
           iyz="0.0"/>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="0.5 0.5 0.5"/>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="1 1 1"/>
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="0.5 0.5 0.5"/>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="1 1 1"/>
         </geometry>
       </collision>
     </link>
@@ -153,17 +181,17 @@
     <joint name="forwardlooking_to_base" type="fixed">
       <parent link="${namespace}/base_link"/>
       <child link="${namespace}/forward_looking_sonar_link" />
-      <origin rpy="0 0 0" xyz="0.75 0 -0.125"/>
+      <origin rpy="0 0 0" xyz="0.92 0 -0.032"/>
       <axis xyz="1 0 0"/>
     </joint>     
 
     <link name="${namespace}/led0_link">
-      <mass value="0.01"/>
+      <mass value="0.00000000001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
-          ixx="0.00001"
-          iyy="0.00001"
-          izz="0.00001"
+          ixx="0.0000000000017"
+          iyy="0.0000000000017"
+          izz="0.0000000000017"
           ixy="0.0"
           ixz="0.0"
           iyz="0.0"/>
@@ -234,12 +262,12 @@
     </gazebo>
 
     <link name="${namespace}/led1_link">
-      <mass value="0.03"/>
+      <mass value="0.00000000001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
-          ixx="0.00001"
-          iyy="0.00001"
-          izz="0.00001"
+          ixx="0.0000000000017"
+          iyy="0.0000000000017"
+          izz="0.0000000000017"
           ixy="0.0"
           ixz="0.0"
           iyz="0.0"/>
@@ -296,12 +324,12 @@
     </gazebo>
 
     <link name="${namespace}/led2_link">
-      <mass value="0.03"/>
+      <mass value="0.00000000001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia
-          ixx="0.00001"
-          iyy="0.00001"
-          izz="0.00001"
+          ixx="0.0000000000017"
+          iyy="0.0000000000017"
+          izz="0.0000000000017"
           ixy="0.0"
           ixz="0.0"
           iyz="0.0"/>

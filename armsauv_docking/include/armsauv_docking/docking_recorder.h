@@ -45,11 +45,21 @@ namespace armsauv_docking{
          */ 
         void recordThread();
 
-	/**
-	 * @brief Serialize all data
-	 */ 
-	std::string serializeData();
+        /**
+         * @brief Data writing thread 
+         */ 
+        void recordAUVThread();
 
+        /**
+         * @brief Serialize all data
+         */ 
+        std::string serializeData();
+         
+        /**
+         * @brief Serialize all data
+         */ 
+        std::string serializeAUVData();
+    
         /**
          * @brief Receive AUV odometry
          * @msg AUV odometry

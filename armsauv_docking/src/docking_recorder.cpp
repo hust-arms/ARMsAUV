@@ -6,12 +6,12 @@ namespace armsauv_docking{
         ros::NodeHandle nh;
         ros::NodeHandle private_nh("~");
 
-	contentPrint<std::string>("docking_recorder", "Parameters configuration");
+    	contentPrint<std::string>("docking_recorder", "Parameters configuration");
 
         /* Parameters configuration */
         private_nh.param("file_name", filename_, std::string("docking_record"));
-        private_nh.param("path", path_, std::string("/home/ros302/Documents/catkin_armsauv/src/ARMsAUV/armsauv_docking/record/"));
-        private_nh.param("frequency", rec_freq_, 5);
+        private_nh.param("path", path_, std::string("/home/wz9562/Documents/catkin_arms/src/ARMsAUV/armsauv_docking/record/"));
+        private_nh.param("frequency", rec_freq_, 1);
 
         std::string auv_odom_t, usbl_msg_t, auv_ctrl_info_t;
         std::string veh_odom_t, armc_odom_t, arm_joints_ang_t, arm_ctrl_info_t;
@@ -46,7 +46,11 @@ namespace armsauv_docking{
         /* Start Thread */
 	contentPrint<std::string>("docking_recorder", "Start recording thread");
         time0_ = ros::Time::now();
-        rec_thread_ = new boost::thread(boost::bind(&DockingRecorder::recordThread, this));
+
+        veh_odom_.pose.pose.position.x = 150.0;
+        
+        // rec_thread_ = new boost::thread(boost::bind(&DockingRecorder::recordThread, this));
+        rec_thread_ = new boost::thread(boost::bind(&DockingRecorder::recordAUVThread, this));
     }
 
     DockingRecorder::~DockingRecorder(){
@@ -65,7 +69,7 @@ namespace armsauv_docking{
         ros::NodeHandle nh;
         while(nh.ok()){
             /* File writing */
-	    contentPrint<std::string>("docking_recorder", "Recording data");
+	        contentPrint<std::string>("docking_recorder", "Recording data");
             if(fw_->writeData(serializeData())){
 	        contentPrint<std::string>("docking_recorder", "Record data successfully"); 
 	    }
@@ -77,12 +81,28 @@ namespace armsauv_docking{
         }
     }
 
+    void DockingRecorder::recordAUVThread(){
+        ros::NodeHandle nh;
+        while(nh.ok()){
+            /* File writing */
+	        contentPrint<std::string>("docking_recorder", "Recording AUV data");
+            if(fw_->writeData(serializeAUVData())){
+	        contentPrint<std::string>("docking_recorder", "Record AUV data successfully"); 
+	    }
+	    else{
+	        contentPrint<std::string>("docking_recorder", "Failed to record AUV data"); 
+	    }
+
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1.0/rec_freq_ * 1000));
+        }
+    }
+    
     std::string DockingRecorder::serializeData(){
         double d_time = (ros::Time::now() - time0_).toSec();
 
         /* Add time stamp*/
         std::stringstream ss;
-	std::string space = " ";
+	    std::string space = " ";
         ss << d_time << space;
         
         /* Add auv odom */
@@ -128,6 +148,45 @@ namespace armsauv_docking{
         return ss.str(); 
     }
 
+    std::string DockingRecorder::serializeAUVData(){
+        double d_time = (ros::Time::now() - time0_).toSec();
+
+        /* Add time stamp*/
+        std::stringstream ss;
+	    std::string space = " ";
+        ss << d_time << space;
+        
+        /* Add auv odom */
+        pthread_rwlock_rdlock(&auv_odom_lock_);
+        tf::Quaternion temp_quat;
+        tf::quaternionMsgToTF(auv_odom_.pose.pose.orientation, temp_quat);
+        double auv_roll, auv_pitch, auv_yaw;
+        tf::Matrix3x3(temp_quat).getRPY(auv_roll, auv_pitch, auv_yaw);
+        ss << auv_odom_.pose.pose.position.x << space << auv_odom_.pose.pose.position.y << space << auv_odom_.pose.pose.position.z << space
+           << auv_roll << space << auv_pitch << space << auv_yaw << space
+           << auv_odom_.twist.twist.linear.x << space << auv_odom_.twist.twist.linear.y << space << auv_odom_.twist.twist.linear.z << space 
+           << auv_odom_.twist.twist.angular.x << space << auv_odom_.twist.twist.angular.y << space << auv_odom_.twist.twist.angular.z << space ;
+        pthread_rwlock_unlock(&auv_odom_lock_);
+
+        /* Add auv control informations */
+
+        /* Add dummy QT odom */
+        pthread_rwlock_rdlock(&veh_odom_lock_);
+        double veh_roll, veh_pitch, veh_yaw;
+        veh_roll = 0.0; veh_pitch = 0.0; veh_yaw = 0.0; 
+        double veh_vel = 1.0;
+        veh_odom_.pose.pose.position.x += 1.0 * veh_vel /rec_freq_;
+        veh_odom_.pose.pose.position.y = -10.0;
+        veh_odom_.pose.pose.position.z = -15.0;
+        ss << veh_odom_.pose.pose.position.x << space << veh_odom_.pose.pose.position.y << space << veh_odom_.pose.pose.position.z << space
+           << veh_roll << space << veh_pitch << space << veh_yaw << space;
+        pthread_rwlock_unlock(&veh_odom_lock_);
+    	
+        contentPrint<std::string>("docking_recorder", ss.str());
+        
+        return ss.str(); 
+    }
+    
     void DockingRecorder::auvOdometryCb(const nav_msgs::Odometry::ConstPtr& msg){
         /* Update auv odometry */ 
         pthread_rwlock_wrlock(&auv_odom_lock_);
